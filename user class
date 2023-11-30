@@ -1,0 +1,57 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package testuser;
+
+/**
+ *
+ * @author Dell
+ */
+import java.util.ArrayList;
+
+abstract public class User{
+    private String UserName;
+    private String Password;
+    private String UserType;
+
+   public User()
+   {  
+   }
+
+    public String getUserType() {
+        return UserType;
+    }
+
+    public void setUserType(String UserType) {
+        this.UserType = UserType;
+    }
+
+    
+    public void setUserName(String username) {
+        this.UserName = username;
+    }
+    
+    public void setPassword(String Password) {
+        this.Password = Password;
+    }
+
+    public String getUserName() {
+        return UserName;
+    }
+
+    public String getPassword() {
+        return Password;
+    }
+    abstract public void Login();
+    abstract public void SignUp();
+    abstract public ArrayList<User>readFromFile(String fileName);
+    abstract public void writeToFile(ArrayList<User>users,String fileName);
+    abstract public void editUser();
+    }
+        
+    
+    
+    
+    
+   
