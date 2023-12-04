@@ -1,0 +1,140 @@
+
+
+
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+public class Librarian extends User implements Serializable{
+    public static ArrayList<Librarian> librarians = new ArrayList<>();
+    private List<Book>books;
+    public Librarian()
+    {
+    }
+    public Librarian(String username,String pass){
+        super.setUserName(username);
+        super.setPassword (pass);
+      }
+     public String getUserName() {
+       return super.getUserName();
+    }
+
+    public void setUserName(String UserName) {
+       super.setUserName(UserName); 
+    }
+
+    public String getPassword() {
+        return super.getPassword();
+    }
+
+    public void setPassword(String Password) {
+         super.setPassword (Password);
+    }
+
+    public List<Book> getBooks() {
+        return books;
+    }
+
+    public void setBooks(List<Book> books) {
+        this.books = books;
+    }
+    
+
+    public static ArrayList<Librarian>readLibrariansFromFile(String fileName) {
+        try{
+            FileInputStream input = new FileInputStream(fileName);
+            ObjectInputStream inputObject = new ObjectInputStream(input);
+            Scanner scan=new Scanner(input);
+            while (scan.hasNext()) {
+                Librarian librarian = (Librarian)inputObject.readObject();
+                librarians.add(librarian);
+            }
+            scan.close();    
+        } catch (IOException e) {
+           System.out.println(e);
+        }
+        catch(ClassNotFoundException e)
+        {
+            System.out.println(e);
+        }
+
+        return librarians;
+    }
+    public static void writeLibrariansToFile(ArrayList<Librarian> librarians, String fileName) {
+        try (PrintWriter writer = new PrintWriter(fileName)) {
+            for (Librarian lib : librarians) {
+                writer.println(lib.getUserName() + " " + lib.getPassword());
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+   
+    @Override
+    public void Login(){
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+
+        for (User librarian : librarians) {
+        if (librarian.getUserName().equals(username)&& librarian.getPassword().equals (password)) {
+            System.out.println("Login successful!");
+        }       
+    }
+               System.out.println("Invalid username or password!");
+
+    }
+    @Override
+    public void SignUp()
+    {
+         System.out.println("Enter librarian's username: ");
+        Scanner scanner = new Scanner(System.in);
+        String username = scanner.nextLine();
+        System.out.println("Enter librarian's password: ");
+        String password = scanner.nextLine();
+        Librarian librarian = new Librarian(username,password);
+        librarians.add(librarian);
+        System.out.println("Librarian added successfully!");
+    }
+  
+    @Override
+    public void editUser(){
+    }
+        public Book selectBook(String bookTitle, String authorName, int ISBN) {
+        
+        for (Book i : books) {
+            if (i.getTitle().equals(bookTitle) && i.getAuthorName().equals(authorName) && i.getISBN() == ISBN) {
+                return i;
+            }
+        }
+        return null ;     
+    }
+    public ArrayList<Book> selectCategory(Category category) {
+    ArrayList<Book> selectedBooks = new ArrayList<>();
+
+    for (Book book : books) {
+        if (book.getCategory() == category) {
+            selectedBooks.add(book);
+        }
+    }
+
+    return selectedBooks;
+}
+}
+
+    
+
