@@ -1,0 +1,222 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+
+
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class Admin extends User implements Serializable {
+    public static ArrayList<Admin> admins= new ArrayList<>();
+    public Admin()
+    {
+    }
+    public Admin(String username,String pass){
+        super.setUserName(username);
+        super.setPassword (pass);
+      }
+
+    public String getUserName() {
+       return super.getUserName();
+    }
+
+    public void setUserName(String UserName) {
+       super.setUserName(UserName); 
+    }
+
+    public String getPassword() {
+        return super.getPassword();
+    }
+
+    public void setPassword(String Password) {
+         super.setPassword (Password);
+    }
+    
+    public static ArrayList<Admin>readAdminsFromFile(String fileName) {
+        try{
+            FileInputStream input = new FileInputStream(fileName);
+            ObjectInputStream inputObject = new ObjectInputStream(input);
+            Scanner scan=new Scanner(input);
+            while (scan.hasNext()) {
+                Admin user = (Admin) inputObject.readObject();
+                admins.add(user);
+            }
+            scan.close();    
+        } catch (IOException e) {
+           System.out.println(e);
+        }
+        catch(ClassNotFoundException e)
+        {
+            System.out.println(e);
+        }
+
+        return admins;
+    }
+    public static void writeAdminsToFile(ArrayList<Admin> users, String fileName) {
+        try (PrintWriter writer = new PrintWriter(fileName)) {
+            for (User user : users) {
+                writer.println(user.getUserName() + " " + user.getPassword());
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void Login() {
+         Scanner scanner = new Scanner(System.in);
+    System.out.print("Enter username: ");
+    String username = scanner.nextLine();
+    System.out.print("Enter password: ");
+    String pass = scanner.nextLine();
+    boolean isLoggedIn = false;
+    for (User admin : admins) {
+        if (admin.getUserName().equals(username) && admin.getPassword().equals(pass)) {
+            isLoggedIn = true;
+            break;
+        }
+    }
+    if (isLoggedIn) {
+        System.out.println("Login successful!");
+        // Perform further actions after successful login
+    } else {
+        System.out.println("Invalid username or password!");
+    }
+    }
+
+    @Override
+    public void SignUp() {
+        Scanner scanner = new Scanner(System.in);
+        Admin admin = new Admin();
+        System.out.println("Enter Username: ");
+        String username = scanner.nextLine();
+        admin.setUserName(username);
+        System.out.println("Enter Password: ");
+        String password = scanner.nextLine();
+        admin.setPassword(password);
+        admins.add(admin);
+        System.out.println("Admin added successfully!");
+        // Perform further actions after successful signup
+    }    
+    
+    public void AddAdmin() {
+       SignUp();
+    }
+
+//    public static void addBorrower(Borrower borrower) {
+//       borrower.SignUp();
+//    }    
+//    public static void addLibrarian(Librarian librarian) { 
+//        librarian.SignUp();
+//    }
+    
+    public static void removeAdmin() {
+    Scanner scanner = new Scanner(System.in);
+    System.out.println("Enter the username of the admin to remove: ");
+    String usernameToRemove = scanner.nextLine();
+
+    for (User admin : admins) {
+        if (admin.getUserName().equals(usernameToRemove)) {
+            admins.remove(admin);
+            System.out.println("Admin removed successfully!");
+            return;
+        }
+    }
+
+    System.out.println("Admin not found.");
+}
+//
+//public static void editAdmin(Admin ad) {
+//    Scanner scanner = new Scanner(System.in);
+//    System.out.println("Enter the username of the admin to edit: ");
+//    String usernameToEdit = scanner.nextLine();
+//
+//    for (User admin : ad.admins) {
+//        if (admin.getUserName().equals(usernameToEdit)) {
+//            System.out.println("Enter the new username: ");
+//            String newUsername = scanner.nextLine();
+//            admin.setUserName(newUsername);
+//
+//            System.out.println("Enter the new password: ");
+//            String newPassword = scanner.nextLine();
+//            admin.setPassword(newPassword);
+//
+//            System.out.println("Admin edited successfully!");
+//            return; 
+//        }
+//    }
+//
+//    System.out.println("Admin not found...");
+//}
+    @Override
+    public void editUser() {
+     System.out.println("----------------------------------------------");
+
+        Scanner input = new Scanner(System.in);
+        System.out.println("Enter old Username: ");
+        String oldUsername = input.next();
+        System.out.println("Enter old Password: ");
+        String oldpassword = input.next();
+        System.out.println("Enter new Username: ");
+        String newUserName = input.next();
+        System.out.println("Enter new password: ");
+        String newPassword = input.next();
+
+        int index = -1;
+        
+        for (User adminObj:admins) {
+    if (adminObj.getUserName().equals(oldUsername) && adminObj.getPassword().equals(oldpassword)) {
+        index = admins.indexOf(adminObj);
+        break;
+    }
+}
+        if (index != -1) {
+            User user = admins.get(index);
+            user.setUserName(newUserName);
+            user.setPassword(newPassword);
+            System.out.println("User " + oldUsername + " has been edited.");
+
+        } else {
+            System.out.println("User " + oldUsername + " was not found.");
+        }
+
+    }
+}
+
+
+
+
+
+    
+
+ 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
