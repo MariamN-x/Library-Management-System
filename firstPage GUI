@@ -1,4 +1,6 @@
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,7 +14,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-public class FirstPage extends Application {
+public class FirstPage extends Application implements Serializable{
 
     @Override
     public void start(Stage primaryStage) {
@@ -58,7 +60,7 @@ public class FirstPage extends Application {
         Root.getChildren().addAll(root1,root2,root3);
         
         Label lbl3=new Label("Library\n\t\tManagment\n\t\t\t\t\tSystem");
-        lbl3.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-font-family: 'Georgia';-fx-font-style: italic; -fx-text-fill: #062758;");
+        lbl3.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-font-family: 'Georgia';-fx-font-style: italic; -fx-text-fill: white;");
         HBox lastRoot=new HBox(lbl3);
         lastRoot.setAlignment(Pos.CENTER_LEFT);
         lastRoot.setPadding(new Insets(0,0,0,20));
@@ -71,12 +73,8 @@ public class FirstPage extends Application {
             String username = usernameField.getText();
             String password = passwordField.getText();
 
-            if (login(username, password)) {
+            if (Login(users,username, password)) {
                 showAlert("Login Successful!", Alert.AlertType.INFORMATION);//for testing
-                // check userType
-                // case 0 --> admin page
-                // case 1 --> librarian page
-                // case 2 --> borrower page
             } else {
                 showAlert("Invalid username or password!", Alert.AlertType.ERROR);
             }
@@ -100,32 +98,40 @@ public class FirstPage extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+    
+    public static boolean Login(List<User> users, String username, String password) {
+        User loggedInUser = User.login(users, username, password);
+        if (loggedInUser != null) {
+            System.out.println("Login successful!");
 
-   private boolean login(String username, String password) {
-    for (User admin : Admin.admins) {
-        if (admin.getUserName().equals(username) && admin.getPassword().equals(password)) {
-            return true;
+            if (loggedInUser instanceof Admin) {
+                Admin admin = (Admin) loggedInUser;
+                //admin.editUser();
+                // Open admin account
+                return true;
+            } else if (loggedInUser instanceof Librarian) {
+                Librarian librarian = (Librarian) loggedInUser;
+                // Open Librarian account
+                return true;
+            } else if (loggedInUser instanceof Borrower) {
+                Borrower borrower = (Borrower) loggedInUser;
+                // Open Borrower account
+                return true;
+            }
+        } else {
+            return false;
         }
-    }
-    for (User librarian : Librarian.librarians) {
-        if (librarian.getUserName().equals(username) && librarian.getPassword().equals(password)) {
-            return true;
-        }
-    }
-    for (User borrower : Borrower.borrowers) {
-        if (borrower.getUserName().equals(username) && borrower.getPassword().equals(password)) {
-            return true;
-        }
-    }
         return false;
     }
 
+   
+
    private boolean signup(String username, String password) {
-    if (isAdminUsernameExists(username) || isLibrarianUsernameExists(username) || isBorrowerUsernameExists(username)) {
+    if (isUsernameExists(username)) {
         return false; 
     }
     if (isAdminSignupAllowed(username)) 
-        Admin.admins.add(new Admin(username, password));
+        users.add(new Admin(username, password));
     else if (isLibrarianSignupAllowed(username)) 
         Librarian.librarians.add(new Librarian(username, password));
     else{
@@ -133,6 +139,15 @@ public class FirstPage extends Application {
         Borrower.borrowers.add(new Borrower(UserName, password));
     }
     return true;
+}
+    
+    private boolean isUsernameExists(String username) {
+    for (User user : users) {
+        if (user.getUserName().equals(username)) {
+            return true; 
+        }
+    }
+    return false; 
 }
 
 private boolean isAdminSignupAllowed(String username) {
@@ -143,50 +158,18 @@ private boolean isLibrarianSignupAllowed(String username) {
     return username.startsWith("librarian_allowed_");
 }
 
-private UserType getUserType(String username) {
-    if (username.startsWith("admin_")) {
-        return UserType.ADMIN;
-    } else if (username.startsWith("librarian_")) {
-        return UserType.LIBRARIAN;
-    } else if (username.startsWith("borrower_")) {
-        return UserType.BORROWER;
-    } else {
-        throw new IllegalArgumentException("Unknown user type for username: " + username);
-    }
-}
+//private UserType getUserType(String username) {
+//    if (username.startsWith("admin_")) {
+//        return UserType.ADMIN;
+//    } else if (username.startsWith("librarian_")) {
+//        return UserType.LIBRARIAN;
+//    } else if (username.startsWith("borrower_")) {
+//        return UserType.BORROWER;
+//    } else {
+//        throw new IllegalArgumentException("Unknown user type for username: " + username);
+//    }
+//}
 
-enum UserType {
-    ADMIN,  //0
-    LIBRARIAN,//1
-    BORROWER //2
-}
-
-
-private boolean isAdminUsernameExists(String username) {
-    for (User admin : Admin.admins) {
-        if (admin.getUserName().equals(username)) {
-            return true; 
-        }
-    }
-    return false; 
-}
-
-private boolean isLibrarianUsernameExists(String username) {
-    for (User librarian : Librarian.librarians) {
-        if (librarian.getUserName().equals(username)) {
-            return true;
-        }
-    }
-    return false;
-}
-private boolean isBorrowerUsernameExists(String username) {
-    for (User borrower : Borrower.borrowers) {
-        if (borrower.getUserName().equals(username)) {
-            return true; 
-        }
-    }
-    return false; 
-}       
     private void showAlert(String message, Alert.AlertType alertType) {
         Alert alert = new Alert(alertType);
         alert.setTitle("Message");
@@ -194,17 +177,10 @@ private boolean isBorrowerUsernameExists(String username) {
         alert.setContentText(message);
         alert.showAndWait();
     }
+    private static List<User>users=new ArrayList<>();
     public static void main(String[] args) {
-         Admin admin=new Admin();
-        admin.readFromFile("adminInfo.txt");
-        ArrayList<User>admins=Admin.admins;
-        Librarian lib=new Librarian();
-        lib.readFromFile("librarianInfo.txt");
-        Borrower bor=new Borrower();
-        bor.readFromFile("borrowerInfo.txt");
-       admin.writeToFile(Admin.admins, "adminInfo.txt");
-       lib.writeToFile(Librarian.librarians, "librarianInfo.txt");
-       bor.writeToFile(Borrower.borrowers, "borrowerInfo.txt");
+        users=User.readUsersFromFile("users.bin");
         launch(args);
+        Admin.writeUsersToFile(users,"users.bin");       
     }
 }
