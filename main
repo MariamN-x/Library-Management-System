@@ -1,90 +1,12 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
- */
+import java.util.List;
 
-import java.io.Serializable;
-import java.util.InputMismatchException;
-import java.util.Scanner;
-
-public class Main implements Serializable {
-    public static void main(String[] args) {
-        Admin admin1=new Admin("mariam","mmm");
-        Admin admin2=new Admin("salma","sss");
-        Admin admin3=new Admin("sara","rrr");
-        Admin.admins.add(admin1);
-        Admin.admins.add(admin2);
-        Admin.admins.add(admin3);
-        
-        Librarian lib1=new Librarian("fatma","fff");
-        Librarian lib2=new Librarian("ali","qqq");
-        Librarian lib3=new Librarian("ahmed","aaa");
-        Librarian.librarians.add(lib1);
-        Librarian.librarians.add(lib2);
-        Librarian.librarians.add(lib3);
-        
-        Borrower bor1=new Borrower("hagar","123");
-        Borrower bor2=new Borrower("tabarak","1234");
-        Borrower.borrowers.add(bor1);
-        Borrower.borrowers.add(bor2);
-        
-        Admin.readAdminsFromFile("adminInfo.dat");
-        Librarian.readLibrariansFromFile("librarianInfo.dat");
-        Borrower.readBorrowersFromFile("borrowerInfo.dat");
-        Admin.writeAdminsToFile(Admin.admins,"adminInfo.dat");
-        Librarian.writeLibrariansToFile(Librarian.librarians,"librarianInfo.dat");
-        Borrower.writeBorrowersToFile(Borrower.borrowers,"borrowerInfo.dat");
-        
-        
-        System.out.println("Admins");
-        for(User user:Admin.admins)
-        {
-            System.out.println(user.getUserName()+"  "+user.getPassword());
-        }
-        System.out.println("Librarians");
-        for(User user:Librarian.librarians)
-        {
-            System.out.println(user.getUserName()+"  "+user.getPassword());
-        }
-        System.out.println("Borrowers");
-        for(User user:Borrower.borrowers)
-        {
-            System.out.println(user.getUserName()+"  "+user.getPassword());
-        }
-         
-        
-    }
-    public static void menu()
+public class Main {
+    public static void main(String[] args) 
     {
-        
-        try{
-        System.out.println("1. Login");
-        System.out.println("2. Sign up");
-        Scanner input=new Scanner(System.in);
-        int c=input.nextInt();
-        User admin= new Admin();
-        switch(c)
-        {
-            case(1):
-                admin.Login();
-                break;
-            case(2):
-               admin.SignUp();
-                break;
-                   
-        }
-    }
-    catch(InputMismatchException e)
-    {
-        System.out.println(e);
-    }        
+      List<User> users = User.readUsersFromFile("usres.bin");      
+        User newUser = new Admin("mariam_nasr", "eee");
+        User.signUp(users, newUser);
+        Admin.writeUsersToFile(users,"users.bin"); 
 }
+    
 }
-
-   
-            
-            
-
-          
-  
-
