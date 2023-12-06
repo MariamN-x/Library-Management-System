@@ -1,9 +1,13 @@
-package testuser;
 
-import java.io.File;
+
+
+
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -12,10 +16,16 @@ import java.util.Scanner;
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
-public class Librarian extends User{
-        public static ArrayList<Librarian> librarians = new ArrayList<>();
-        private List<Book>books;
-
+public class Librarian extends User implements Serializable{
+    public static ArrayList<Librarian> librarians = new ArrayList<>();
+    private List<Book>books;
+    public Librarian()
+    {
+    }
+    public Librarian(String username,String pass){
+        super.setUserName(username);
+        super.setPassword (pass);
+      }
      public String getUserName() {
        return super.getUserName();
     }
@@ -39,84 +49,9 @@ public class Librarian extends User{
     public void setBooks(List<Book> books) {
         this.books = books;
     }
-    
-    
-     @Override
-     public ArrayList<User>readFromFile(String fileName) {
-         ArrayList<User> librarians = new ArrayList<>();
-        try {
-            File file = new File(fileName);
-            Scanner scanner = new Scanner(file);
 
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                String[] parts = line.split(" ");
-                if (parts.length == 2) {
-                    User librarian = new Librarian();
-                    librarian.setUserName(parts[0]);
-                    librarian.setPassword(parts[1]);
-                    librarians.add(librarian);
-                } else {
-                    System.out.println("Invalid format in the file: " + line);
-                }
-            }
-
-            scanner.close();
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found: " + fileName);
-            System.out.println(e);
-        }
-
-        return librarians;
-    }
-    @Override
-    public void writeToFile(ArrayList<User>users,String fileName)
-    {
-         try (FileWriter writer = new FileWriter(fileName)) {
-            for (User lib : users) {
-                writer.write(lib.getUserName() + " " + lib.getPassword() + System.lineSeparator());
-            }
-        } catch (IOException e) {
-            System.out.println(e);
-        }
-    }
    
-    @Override
-    public void Login(){
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter password: ");
-        String password = scanner.nextLine();
-
-        for (Librarian librarian : librarians) {
-        if (librarian.getUserName().equals(username)&& librarian.getPassword().equals (password)) {
-            System.out.println("Login successful!");
-            return;
-        }       
-    }
-               System.out.println("Invalid username or password!");
-
-    }
-    @Override
-    public void SignUp()
-    {
-         System.out.println("Enter librarian's username: ");
-        Scanner scanner = new Scanner(System.in);
-        String username = scanner.nextLine();
-        Librarian librarian = new Librarian();
-        librarian.setUserName(username);
-        System.out.println("Enter librarian's password: ");
-        String password = scanner.nextLine();
-        librarian.setPassword(password);
-        librarians.add(librarian);
-        System.out.println("Librarian added successfully!");
-    }
-  
-    @Override
-    public void editUser(){
-    }
-        public Book selectBook(String bookTitle, String authorName, int ISBN) {
+    public Book selectBook(String bookTitle, String authorName, int ISBN) {
         
         for (Book i : books) {
             if (i.getTitle().equals(bookTitle) && i.getAuthorName().equals(authorName) && i.getISBN() == ISBN) {
