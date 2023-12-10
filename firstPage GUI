@@ -1,5 +1,4 @@
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -15,133 +14,64 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class FirstPage extends Application implements Serializable{
-
+    protected static List<User> users;
+    protected Stage primaryStage;
+    protected TextField usernameField;
+    protected PasswordField passwordField;
+    protected PasswordField retypePasswordField;
+    protected Button login;
+    protected Button signup1;
+    protected Button signup2;
+   
     @Override
     public void start(Stage primaryStage) {
-
-        Image image = new Image("file:ELib.png");
-        ImageView imageView = new ImageView(image);
-        
-        primaryStage.setTitle("Login Page");
-
-        Label usernameLbl1 = new Label("Username  ");
-        TextField usernameField = new TextField();
-        //remove borders except bottom
-        usernameField.setStyle("-fx-background-color: transparent; -fx-background-radius: 0; -fx-border-width: 0 0 1 0; -fx-border-color: black;");
-
-        Label passwordLbl = new Label("Password  ");
-        TextField passwordField = new PasswordField();
-        passwordField.setStyle("-fx-background-color: transparent; -fx-background-radius: 0; -fx-border-width: 0 0 1 0; -fx-border-color: black;");
-
-        Button login = new Button("Login");
-        Button signup = new Button("Sign Up");
-        login.setStyle("-fx-font-size: 15px; -fx-background-color: #062758; -fx-text-fill: white;");
-        signup.setStyle("-fx-font-size: 15px; -fx-background-color: #062758; -fx-text-fill: white;");
-        
-        FlowPane root1=new FlowPane(usernameLbl1,usernameField);
-        root1.setAlignment(Pos.CENTER);
-        root1.setHgap(10); 
-        root1.setVgap(5);
-        root1.setPadding(new Insets(0,0,0,200));
-        
-        FlowPane root2=new FlowPane(passwordLbl, passwordField);
-        root2.setAlignment(Pos.CENTER);
-        root2.setHgap(10); root2.setVgap(5);
-        root2.setPadding(new Insets(0,0,0,200));
-        
-        FlowPane root3=new FlowPane(login,signup);
-        root3.setAlignment(Pos.CENTER);
-        root3.setHgap(20); 
-        root3.setPadding(new Insets(20,0,0,250));
-        
-        VBox Root=new VBox();
-        Root.setAlignment(Pos.CENTER);
-        Root.setSpacing(10);
-        Root.getChildren().addAll(root1,root2,root3);
-        
-        Label lbl3=new Label("Library\n\t\tManagment\n\t\t\t\t\tSystem");
-        lbl3.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-font-family: 'Georgia';-fx-font-style: italic; -fx-text-fill: white;");
-        HBox lastRoot=new HBox(lbl3);
-        lastRoot.setAlignment(Pos.CENTER_LEFT);
-        lastRoot.setPadding(new Insets(0,0,0,20));
-        
-        StackPane all=new StackPane(imageView,Root,lastRoot);
-        Scene scene = new Scene(all, 700, 600);
-        
-        
-    login.setOnAction(e -> {
-            String username = usernameField.getText();
-            String password = passwordField.getText();
-
-            if (Login(users,username, password)) {
-                showAlert("Login Successful!", Alert.AlertType.INFORMATION);//for testing
-            } else {
-                showAlert("Invalid username or password!", Alert.AlertType.ERROR);
-            }
-        });
-
-        signup.setOnAction(e -> {
-            String username = usernameField.getText();
-            String password = passwordField.getText();
-
-            if (signup(username, password)) {
-                showAlert("Signup Successful!", Alert.AlertType.INFORMATION); 
-                // case 0 --> admin page
-                // case 1 --> librarian page
-                // case 2 --> borrower page
-            } else {
-                showAlert("Signup Failed!", Alert.AlertType.ERROR);
-            }
-        });
-        
-        primaryStage.setResizable(false);
-        primaryStage.setScene(scene);
+        primaryStage.setTitle("Library System");
+        LoginScene(primaryStage);
         primaryStage.show();
+
     }
     
-    public static boolean Login(List<User> users, String username, String password) {
-        User loggedInUser = User.login(users, username, password);
-        if (loggedInUser != null) {
-            System.out.println("Login successful!");
+    protected boolean Login(String username, String password,Stage primaryStage) {
+       User loggedInUser = User.login(users, username, password);
+    if (loggedInUser != null) {
+        System.out.println("Login successful!");
 
-            if (loggedInUser instanceof Admin) {
-                Admin admin = (Admin) loggedInUser;
-                //admin.editUser();
-                // Open admin account
-                return true;
-            } else if (loggedInUser instanceof Librarian) {
-                Librarian librarian = (Librarian) loggedInUser;
-                // Open Librarian account
-                return true;
-            } else if (loggedInUser instanceof Borrower) {
-                Borrower borrower = (Borrower) loggedInUser;
-                // Open Borrower account
-                return true;
-            }
-        } else {
-            return false;
+        if (loggedInUser instanceof Admin) {
+            primaryStage.setScene(AdminScene());
+            return true;
+        } else if (loggedInUser instanceof Librarian) {
+            primaryStage.setScene(LibrarianScene());
+            return true;
+        } else if (loggedInUser instanceof Borrower) {
+            primaryStage.setScene(BorrowerScene());
+            return true;
         }
+    } else {
+        return false;
+    }
         return false;
     }
 
    
-
-   private boolean signup(String username, String password) {
+    protected  boolean signup(String username, String password,Stage primaryStage) {
     if (isUsernameExists(username)) {
         return false; 
     }
-    if (isAdminSignupAllowed(username)) 
-        users.add(new Admin(username, password));
-    else if (isLibrarianSignupAllowed(username)) 
-        Librarian.librarians.add(new Librarian(username, password));
-    else{
-        String UserName="borrower_"+username;
-        Borrower.borrowers.add(new Borrower(UserName, password));
+    if (isAdminSignupAllowed(username)) {
+        User admin=new Admin(username,password);
+        users.add(admin);
+        
+    } else if (isLibrarianSignupAllowed(username)) {
+        User lib=new Librarian(username,password);
+        users.add(lib);
+    } else {
+        User bor=new Borrower(username,password);
+        users.add(bor);
     }
     return true;
 }
     
-    private boolean isUsernameExists(String username) {
+protected boolean isUsernameExists(String username) {
     for (User user : users) {
         if (user.getUserName().equals(username)) {
             return true; 
@@ -149,36 +79,103 @@ public class FirstPage extends Application implements Serializable{
     }
     return false; 
 }
-
-private boolean isAdminSignupAllowed(String username) {
+protected boolean isAdminSignupAllowed(String username) {
     return username.startsWith("admin_allowed_");
 }
 
-private boolean isLibrarianSignupAllowed(String username) {
+protected boolean isLibrarianSignupAllowed(String username) {
     return username.startsWith("librarian_allowed_");
 }
 
-//private UserType getUserType(String username) {
-//    if (username.startsWith("admin_")) {
-//        return UserType.ADMIN;
-//    } else if (username.startsWith("librarian_")) {
-//        return UserType.LIBRARIAN;
-//    } else if (username.startsWith("borrower_")) {
-//        return UserType.BORROWER;
-//    } else {
-//        throw new IllegalArgumentException("Unknown user type for username: " + username);
-//    }
-//}
+//scenes
 
-    private void showAlert(String message, Alert.AlertType alertType) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle("Message");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+protected void LoginScene(Stage primaryStage) {
+        Image image = new Image("file:ELib.png");
+        ImageView imageView = new ImageView(image);
+
+        Label usernameLbl1 = new Label("Username  ");
+        usernameField = new TextField();
+        // remove borders except bottom
+        usernameField.setStyle("-fx-background-color: transparent; -fx-background-radius: 0; -fx-border-width: 0 0 1 0; -fx-border-color: black;");
+
+        Label passwordLbl = new Label("Password  ");
+        passwordField = new PasswordField();
+        passwordField.setStyle("-fx-background-color: transparent; -fx-background-radius: 0; -fx-border-width: 0 0 1 0; -fx-border-color: black;");
+
+        login = new Button("Login");
+        signup1 = new Button("Sign Up");
+        login.setStyle("-fx-font-size: 15px; -fx-background-color: #062758; -fx-text-fill: white;");
+        signup1.setStyle("-fx-font-size: 15px; -fx-background-color: #062758; -fx-text-fill: white;");
+
+        FlowPane root1 = new FlowPane(usernameLbl1, usernameField);
+        root1.setAlignment(Pos.CENTER);
+        root1.setHgap(10);
+        root1.setVgap(5);
+        root1.setPadding(new Insets(0, 0, 0, 200));
+
+        FlowPane root2 = new FlowPane(passwordLbl, passwordField);
+        root2.setAlignment(Pos.CENTER);
+        root2.setHgap(10);
+        root2.setVgap(5);
+        root2.setPadding(new Insets(0, 0, 0, 200));
+
+        FlowPane root3 = new FlowPane(login, signup1);
+        root3.setAlignment(Pos.CENTER);
+        root3.setHgap(20);
+        root3.setPadding(new Insets(20, 0, 0, 250));
+
+        VBox Root = new VBox();
+        Root.setAlignment(Pos.CENTER);
+        Root.setSpacing(10);
+        Root.getChildren().addAll(root1, root2, root3);
+
+        Label lbl3 = new Label("Library\n\t\tManagment\n\t\t\t\t\tSystem");
+        lbl3.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-font-family: 'Georgia';-fx-font-style: italic; -fx-text-fill: white;");
+        HBox lastRoot = new HBox(lbl3);
+        lastRoot.setAlignment(Pos.CENTER_LEFT);
+        lastRoot.setPadding(new Insets(0, 0, 0, 20));
+
+        StackPane all = new StackPane(imageView, Root, lastRoot);
+        Scene scene = new Scene(all, 700, 600);
+
+        ButtonHandler buttonHandler = new ButtonHandler(users, primaryStage, usernameField, passwordField, login, signup1);
+        login.setOnAction(buttonHandler);
+        signup1.setOnAction(buttonHandler);
+
+        primaryStage.setScene(scene);
     }
-    private static List<User>users=new ArrayList<>();
-    public static void main(String[] args) {
+protected Scene AdminScene() {
+    Label lbl=new Label("Welcome To The Library...\nAdmin");
+    lbl.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-font-family: 'Georgia';-fx-font-style: italic; -fx-text-fill: black;");
+    VBox root=new VBox(lbl);   
+    root.setAlignment(Pos.CENTER);
+    Scene newScene=new Scene(root,700,600);
+    
+    return newScene;
+}
+
+protected Scene LibrarianScene() {
+     Label lbl=new Label("Welcome To The Library...\nLibrarian");
+    lbl.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-font-family: 'Georgia';-fx-font-style: italic; -fx-text-fill: black;");
+    VBox root=new VBox(lbl);   
+    root.setAlignment(Pos.CENTER);
+    Scene newScene=new Scene(root,700,600);
+    
+    return newScene;
+}
+
+protected Scene BorrowerScene() {
+    Label lbl=new Label("Welcome To The Library...\nBorrower");
+    lbl.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-font-family: 'Georgia';-fx-font-style: italic; -fx-text-fill: black;");
+    VBox root=new VBox(lbl);   
+    root.setAlignment(Pos.CENTER);
+    Scene newScene=new Scene(root,700,600);
+    
+    return newScene;
+}
+
+
+public static void main(String[] args) {
         users=User.readUsersFromFile("users.bin");
         launch(args);
         Admin.writeUsersToFile(users,"users.bin");       
