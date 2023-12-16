@@ -1,12 +1,17 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
+ */
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) 
     {
-      List<User> users = User.readUsersFromFile("usres.bin");      
+      List<User> users = new ArrayList<>();      
         User newUser = new Admin("mariam_nasr", "eee");
-        User.signUp(users, newUser);
+        users.add(newUser);
         Admin.writeUsersToFile(users,"users.bin"); 
-}
-    
+    }    
 }
