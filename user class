@@ -24,8 +24,6 @@ public class User implements Serializable{
 
     private String UserName;
     private String Password;
-    private int loginAttempts = 0;//no. trails
-
    public User()
    {  
    }
@@ -50,15 +48,6 @@ public class User implements Serializable{
     public String getPassword() {
         return Password;
     }
-
-    public int getLoginAttempts() {
-        return loginAttempts;
-    }
-
-    public void setLoginAttempts(int loginAttempts) {
-        this.loginAttempts = loginAttempts;
-    }
-    
     
     
 public static List<User> readUsersFromFile(String fileName) {
@@ -113,32 +102,14 @@ public static List<User> readUsersFromFile(String fileName) {
         users.add(user);
         System.out.println("Signup successful!");
     }
-    public void editUser()
-    {
-         Scanner scanner = new Scanner(System.in);
-        
-        System.out.println("Enter new username : ");
-        String newUsername = scanner.nextLine();
-
-        System.out.println("Enter new password : ");
-        String newPassword = scanner.nextLine();
-
-        // Update user information
-        if (!newUsername.isEmpty()) {
-            setUserName(newUsername);
+    
+    public User editUser(List<User> users,String oldUsername, String newUsername, String newPassword) {
+    for (User user : users) {
+        if (user.getUserName().equals(oldUsername)) {
+            return user;
         }
-
-        if (!newPassword.isEmpty()) {
-            setPassword(newPassword);
-        }
-
-        System.out.println("User information updated successfully!");
     }
+    return null;
     }
+}
     
-        
-    
-    
-    
-    
-   
