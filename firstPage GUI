@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javafx.application.Application;
@@ -39,53 +40,46 @@ public class FirstPage extends Application implements Serializable{
         primaryStage.setResizable(false);
         primaryStage.show();
 
-    }
-    
-protected boolean Login(String username, String password,Stage primaryStage) {
-       accountObj = User.login(users, username, password); //user.login in class user
+    }    
+protected boolean Login(String username, String password, Stage primaryStage) {
+    accountObj = User.login(users, username, password);
+
     if (accountObj != null) {
         System.out.println("Login successful!");
 
-        if (accountObj instanceof Admin) {
-            primaryStage.setScene(AdminScene());
-            return true;
-        } else if (accountObj instanceof Librarian) {
-            primaryStage.setScene(LibrarianScene());
-            return true;
-        } else if (accountObj instanceof Borrower) {
-            primaryStage.setScene(BorrowerScene());
-            return true;
+        User.UserType userType = ((User) accountObj).getUserType();
+
+        switch (userType) {
+            case ADMIN:
+                primaryStage.setScene(AdminScene());
+                break;
+            case LIBRARIAN:
+                primaryStage.setScene(LibrarianScene());
+                break;
+            case BORROWER:
+                primaryStage.setScene(BorrowerScene());
+                break;
         }
+
+        return true;
     }
-        return false;
-    }
+
+    return false;
+}
+
 protected boolean signup(String username, String password, Stage primaryStage, String selectedItem) {
     if (isUsernameExists(username)) {
         showAlert("Signup Failed!\nUsername ALREADY taken", Alert.AlertType.ERROR);
-        return false;
+        return false;          
     } else {
-        switch (selectedItem) {
-            case "Add Admin":
-                accountObj = new Admin(username, password);
-                users.add(accountObj);
-                primaryStage.setScene(AdminScene());
-                break;
-            case "Add Librarian":
-                accountObj = new Librarian(username, password);
-                users.add(accountObj);
-                primaryStage.setScene(LibrarianScene());
-                break;
-            default:
-                accountObj = new Borrower(username, password);
-                users.add(accountObj);
-                primaryStage.setScene(BorrowerScene());
-                break;
+            accountObj = new Borrower(username, password, User.UserType.BORROWER);
+            users.add(accountObj);
+            primaryStage.setScene(BorrowerScene());
         }
         usernameField.clear();
         passwordField.clear();
 
         return true;
-    }
 }
 
 protected boolean isUsernameExists(String username) {
@@ -210,65 +204,155 @@ public Scene signUpScene() {
     return scene;
 }
 
-private Scene AdminScene() {
-    Image image = new Image("file:library.jpg");
-    ImageView imageView = new ImageView(image);
-    
+private Scene AdminScene() {   
+    //icons
     GridPane grid = new GridPane();
-    grid.setAlignment(Pos.TOP_CENTER);
-    grid.setVgap(10); 
+    grid.setAlignment(Pos.TOP_LEFT);
+    grid.setHgap(10); 
+    Image image1 = new Image("file:add_user.jpg");
+    ImageView imageView1 = new ImageView(image1);
+    imageView1.setFitWidth(150);
+    imageView1.setFitHeight(150);
 
-    Label lbl = new Label("Welcome  " + usernameField.getText() + "  To The Library");
-    lbl.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-text-fill: black;");
-    lbl.setPadding(new Insets(20));
+    Image image2=new Image("file:edit user.png");
+    ImageView imageView2 = new ImageView(image2);
+    imageView2.setFitWidth(150);
+    imageView2.setFitHeight(150);
+    
+    Image image3=new Image("file:remove user.png");
+    ImageView imageView3 = new ImageView(image3);
+    imageView3.setFitWidth(120);
+    imageView3.setFitHeight(105);
+    
+    Image image4=new Image("file:list user.png");
+    ImageView imageView4 = new ImageView(image4);
+    imageView4.setFitWidth(150);
+    imageView4.setFitHeight(150);
+    
+
+    
 //add
-    Label addLbl = new Label("\t\t\tAdd");
-    addLbl.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-text-fill: white;");
+    Label addLbl = new Label("\t\tAdd");
+    addLbl.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: white;");
     ObservableList<String> addOptions = FXCollections.observableArrayList("Add Admin", "Add Librarian", "Add Borrower");
     combo = new ComboBox<>(addOptions);
-    combo.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 200px;-fx-pref-height: 30px;"); 
-
+    combo.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px;-fx-pref-height: 30px;"); 
+    combo.setOnAction(e -> {
+    String selectedItem = combo.getSelectionModel().getSelectedItem();
     combo.setOnAction(e -> {
     String selectedItem = combo.getSelectionModel().getSelectedItem();
     if (selectedItem != null) {
-        if (selectedItem.equals("Add Admin") || selectedItem.equals("Add Librarian") || selectedItem.equals("Add Borrower")) {
-            Scene signUpScene = signUpScene(); 
-            primaryStage.setScene(signUpScene); // show add user dialog**** make method dialog generalized
+        User.UserType userType1 = getUserTypeFromSelectedItem(selectedItem);
+        showAddUserDialog(userType, user -> {
+            showAddUserDialog(userType1);
+            users.add(user);
+            System.out.println("User added: " + user.getUserName() + " (" + user.getUserType() + ")");
+        });
+    }
+});
+
+//edit 
+    Button editUserButton = new Button("Edit User");
+    editUserButton.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
+    editUserButton.setOnAction(e -> showEditUserDialog());
+//remove    
+    Button removeUserButton = new Button("Remove User");
+    removeUserButton.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
+    removeUserButton.setOnAction(e -> showRemoveUserDialog());
+
+//list
+    Label listLbl = new Label("\t\tList");
+    listLbl.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: white;");
+    ObservableList<String> listOptions = FXCollections.observableArrayList(
+    "List by Usernames", "List by Passwords", "List by User Type", "List ALL");
+    ComboBox<String> combo2 = new ComboBox<>(listOptions);
+    combo2.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px;-fx-pref-height: 30px;");
+
+    combo2.setOnAction(e -> {
+    List<String> use = new ArrayList<>();
+    User user=new Admin();
+    String selectedItem2 = combo2.getSelectionModel().getSelectedItem();
+    if (selectedItem2 != null) {
+        switch (selectedItem2) {
+            case "List by Usernames":
+                use = user.getUsernames();                
+                break;
+            case "List by Passwords":
+                use = user.getPasswords(); 
+                break;
+            case "List by User Type":
+               use = user.getUserTypes(); 
+                break;
+            case "List ALL":
+                use = user. getAllUsers(); 
+                break;
         }
     }
-    });
-//edit
-    Button editUserButton = new Button("Edit User");
-    editUserButton.setStyle("-fx-font-size: 12px; -fx-background-color: #062758; -fx-text-fill: white;");
-    editUserButton.setOnAction(e -> showEditUserDialog());
-       
-    grid.add(lbl, 0, 0);
+    showUserListDialog(use);
+});
+
+    grid.add(imageView1, 0, 0);
+    grid.add(imageView2, 1, 0);
+    grid.add(imageView3, 2, 0);
+    grid.add(imageView4, 3, 0);
     grid.add(combo, 0, 2);
     grid.add(addLbl, 0, 2);
     grid.add(editUserButton, 1, 2);
-    StackPane stack=new StackPane(imageView,grid);
-    Scene newScene = new Scene(stack, 1000, 800);
+    grid.add(removeUserButton, 2, 2);
+    grid.add(combo2,3,2);
+    grid.add(listLbl,3,2);
+    Scene newScene = new Scene(grid, 1000, 800);
     return newScene;
+}
+private void showAddUserDialog(User.UserType userType) {
+    Dialog<User> dialog = new Dialog<>();
+    dialog.setTitle("Add User");
+    dialog.setHeaderText("Enter user details:");
+
+    TextField usernameField = new TextField();
+    PasswordField passwordField = new PasswordField();
+
+    dialog.getDialogPane().setContent(new VBox(10,
+            new Label("Username:"), usernameField,
+            new Label("Password:"), passwordField));
+
+    ButtonType addButton = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(addButton, ButtonType.CANCEL);
+
+    Node addButtonNode = dialog.getDialogPane().lookupButton(addButton);
+    addButtonNode.setDisable(true);
+    usernameField.textProperty().addListener((observable, oldValue, newValue) -> {
+        addButtonNode.setDisable(newValue.trim().isEmpty());
+    });
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == addButton) {
+            String username = usernameField.getText();
+            String password = passwordField.getText();
+            User user = new User(username, password, userType);
+            users.add(user);  // Directly add the user to the list
+            System.out.println("User added: " + user.getUserName() + " (" + user.getUserType() + ")");
+        }
+        return null;
+    });
+
+    // Show the dialog
+    dialog.showAndWait();
 }
 
-protected Scene LibrarianScene() {
-        
-    VBox root=new VBox();   
-    root.setAlignment(Pos.CENTER);
-    Scene newScene=new Scene(root,700,600);
-    
-    return newScene;
+private User.UserType getUserTypeFromSelectedItem(String selectedItem) {
+    switch (selectedItem) {
+        case "Add Admin":
+            return User.UserType.ADMIN;
+        case "Add Librarian":
+            return User.UserType.LIBRARIAN;
+        case "Add Borrower":
+            return User.UserType.BORROWER;
+        default:
+            throw new IllegalArgumentException("Invalid user type: " + selectedItem);
+    }
 }
 
-protected Scene BorrowerScene() {
-    Label lbl=new Label("Welcome To The Library...\nBorrower");
-    lbl.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-font-family: 'Georgia';-fx-font-style: italic; -fx-text-fill: black;");
-    VBox root=new VBox(lbl);   
-    root.setAlignment(Pos.CENTER);
-    Scene newScene=new Scene(root,700,600);
-    
-    return newScene;
-}
 
 protected boolean editUser(String oldUsername, String newUsername, String newPassword) { //to show dialog or alert
     User userToEdit = new User();
@@ -315,6 +399,84 @@ private void showEditUserDialog() {
         editUser(usernameField.getText(), newUsername, newPassword);
     });
 }
+
+protected boolean removeUser(String username) {
+    User userToRemove= new Admin();
+    userToRemove=userToRemove.removeUser(users, username);
+    if (userToRemove != null) {
+        users.remove(userToRemove);
+        showAlert("User removed successfully", Alert.AlertType.INFORMATION);
+        return true;
+    } else {
+        showAlert("User not found", Alert.AlertType.ERROR);
+        return false;
+    }
+}
+
+private void showRemoveUserDialog() {
+    Dialog<String> dialog = new Dialog<>();
+    dialog.setTitle("Remove User");
+    dialog.setHeaderText("Enter username:");
+
+    ButtonType removeButtonType = new ButtonType("Remove", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(removeButtonType, ButtonType.CANCEL);
+
+    TextField usernameField = new TextField();
+    dialog.getDialogPane().setContent(new VBox(10, new Label("Username:"), usernameField));
+
+    Node removeButton = dialog.getDialogPane().lookupButton(removeButtonType);
+    removeButton.setDisable(true);
+
+    usernameField.textProperty().addListener((observable, oldValue, newValue) -> {
+        removeButton.setDisable(newValue.trim().isEmpty());
+    });
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == removeButtonType) {
+            return usernameField.getText();
+        }
+        return null;
+    });
+
+    Optional<String> result = dialog.showAndWait();
+    result.ifPresent(username -> {
+        removeUser(username);
+    });
+}
+
+private void showUserListDialog(List<String> userList) {
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    alert.setTitle("User List");
+    alert.setHeaderText(null);
+    
+    StringBuilder contentText = new StringBuilder();
+    for (String user : userList) {
+        contentText.append(user).append("\n");
+    }
+
+    alert.setContentText(contentText.toString());
+    alert.showAndWait();
+}
+
+protected Scene LibrarianScene() {
+        
+    VBox root=new VBox();   
+    root.setAlignment(Pos.CENTER);
+    Scene newScene=new Scene(root,700,600);
+    
+    return newScene;
+}
+
+protected Scene BorrowerScene() {
+    Label lbl=new Label("Welcome To The Library...\nBorrower");
+    lbl.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-font-family: 'Georgia';-fx-font-style: italic; -fx-text-fill: black;");
+    VBox root=new VBox(lbl);   
+    root.setAlignment(Pos.CENTER);
+    Scene newScene=new Scene(root,700,600);
+    
+    return newScene;
+}
+
 private void showAlert(String message, Alert.AlertType alertType) {
         Alert alert = new Alert(alertType);
         alert.setTitle("Message");
