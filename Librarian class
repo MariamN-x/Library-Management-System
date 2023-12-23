@@ -1,41 +1,49 @@
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.PrintWriter;
-import java.io.Serializable;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+import java.util.Random;
 
-public class Librarian extends User implements Serializable{
-    public static ArrayList<Librarian> librarians = new ArrayList<>();
+
+
+class Librarian extends User {
+    private List<Borrowing> borrowings;
     private List<Book>books;
-    public Librarian()
-    {
+
+    public Librarian() {
+        borrowings = new ArrayList<>();
     }
-    public Librarian(String username,String pass){
+
+      public Librarian(String username,String pass){
         super.setUserName(username);
         super.setPassword (pass);
       }
+      
+      @Override
      public String getUserName() {
        return super.getUserName();
     }
+      @Override
 
     public void setUserName(String UserName) {
        super.setUserName(UserName); 
     }
+      @Override
 
     public String getPassword() {
         return super.getPassword();
     }
+      @Override
 
     public void setPassword(String Password) {
          super.setPassword (Password);
+    }
+    
+    public List<Borrowing> getBorrowings() {
+        return borrowings;
+    }
+
+    public void setBorrowings(List<Borrowing> borrowings) {
+        this.borrowings = borrowings;
     }
 
     public List<Book> getBooks() {
@@ -46,11 +54,56 @@ public class Librarian extends User implements Serializable{
         this.books = books;
     }
 
+    
    
-    public Book selectBook(String bookTitle, String authorName, int ISBN) {
+    
+//    
+//    public void createBorrowing(String bookTitle, String borrowerName, LocalDate startDate, LocalDate endDate) {
+//        Borrowing borrowing = new Borrowing(bookTitle, borrowerName, startDate, endDate);
+//        borrowings.add(borrowing);
+//    }
+
+
+    public double calculatePayment(Borrowing borrowing) {
+        
+        return 0;
+    }
+    
+    
+    public ArrayList<Book> selectPreferences(String preference, int numberOfBooks) {
+        ArrayList<Book> selectedBooks = new ArrayList<>();
+        ArrayList<Book> preferenceBooks = new ArrayList<>();
+
+        for (Book book : books) {
+            if (book.getCategory().toString().equalsIgnoreCase(preference)) {
+                preferenceBooks.add(book);
+            }
+        }
+
+        // If the number of preference books is less than the desired number, return all preference books
+        if (preferenceBooks.size() <= numberOfBooks) {
+            return preferenceBooks;
+        }
+
+        // Randomly select the desired number of preference books
+        Random random = new Random();
+        while (selectedBooks.size() < numberOfBooks) {
+            int randomIndex = random.nextInt(preferenceBooks.size());
+            Book selectedBook = preferenceBooks.get(randomIndex);
+            if (!selectedBooks.contains(selectedBook)) {
+                selectedBooks.add(selectedBook);
+            }
+        }
+
+        return selectedBooks;
+    }
+
+    
+    
+    public Book selectBook(String bookTitle, String authorName, String ISBN) {
         
         for (Book i : books) {
-            if (i.getTitle().equals(bookTitle) && i.getAuthorName().equals(authorName) && i.getISBN() == ISBN) {
+            if (i.getTitle().equals(bookTitle) && i.getAuthor().equals(authorName) && i.getISBN().equals(ISBN)) {
                 return i;
             }
         }
@@ -67,7 +120,6 @@ public class Librarian extends User implements Serializable{
 
     return selectedBooks;
 }
-}
-
     
-
+    
+}
