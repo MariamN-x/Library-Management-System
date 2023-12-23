@@ -1,0 +1,245 @@
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+public class Book implements Serializable {
+    private static final long serialVersionUID = 3155157275827385334L;
+
+    private String ISBN;
+    private String title;
+    private String authorName;
+    private int quantity;
+    private double price;
+    private Category category;
+    private double rate; // Note: don't forget it :(
+    private boolean availability;
+
+    // Use camelCase for variable names (e.g., booksList instead of books)
+    public static List<Book> booksList = new ArrayList<>();
+    private static HashMap<Category, List<Book>> listByCategory = new HashMap<>();
+    private static ArrayList<Book> reservedBooks = new ArrayList<>();
+    private static int noReservedBooks = 0;
+    private static ArrayList<Book> returnBooks = new ArrayList<>();
+    private static HashMap<String, Integer> borrowCount = new HashMap<>();
+
+    public enum Category {
+        FICTION, NON_FICTION, MYSTERY, MEDICAL, SCIENCE_FICTION, FANTASY, ROMANCE, HORROR, BIOGRAPHY, HISTORY,
+        SELF_HELP, HEALTH, TRAVEL, COOKING, CHILDREN, YOUNG_ADULT, SCIENCE, PHILOSOPHY, RELIGION, ART, POETRY, DRAMA,
+        COMICS, CLASSICS, CRIME, THRILLER, BUSINESS, ECONOMICS, POLITICS, SOCIOLOGY, PSYCHOLOGY, TECHNICAL,
+        COMPUTER_SCIENCE, PROGRAMMING
+    }
+
+    public Book() {
+    }
+
+    public Book(String ISBN, String title, String authorName, int quantity, double price, Category category) {
+        this.ISBN = ISBN;
+        this.title = title;
+        this.authorName = authorName;
+        this.quantity = quantity;
+        this.price = price;
+        this.category = category;
+        setListByCategory(category);
+    }
+
+    public String getISBN() {
+        return ISBN;
+    }
+
+    public void setISBN(String ISBN) {
+        this.ISBN = ISBN;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public double getRate() {
+        return rate;
+    }
+
+    public void setRate(double rate) {
+        this.rate = rate;
+    }
+
+    public boolean isAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(boolean availability) {
+        this.availability = availability;
+    }
+    
+    public void setListByCategory(Category category) {
+        if (listByCategory.containsKey(category)) {
+            listByCategory.get(category).add(this);
+        } else {
+            List<Book> booksByCategory = new ArrayList<>();
+            booksByCategory.add(this);
+            listByCategory.put(category, booksByCategory);
+        }
+    }
+
+    public static HashMap<Category, List<Book>> getListByCategory() {
+        return listByCategory;
+    }
+
+    public static ArrayList<Book> getReservedBooks() {
+        return reservedBooks;
+    }
+    public static void setReservedBooks(ArrayList<Book> reservedBooks) {
+        Book.reservedBooks = reservedBooks;
+    }
+    public static int getNoReservedBooks() {
+        return noReservedBooks;
+    }
+    public static void setNoReservedBooks(int noReservedBooks) {
+        Book.noReservedBooks = noReservedBooks;
+    }
+    public static ArrayList<Book> getReturnBooks() {
+        return returnBooks;
+    }
+    public static void setReturnBooks(ArrayList<Book> returnBooks) {
+        Book.returnBooks = returnBooks;
+    }
+    
+     
+    
+    //list books
+    public List<String> ListbyTitle()
+    {
+        List<String> titles = new ArrayList<>();
+        for(Book book:booksList){
+            titles.add(book.getTitle());
+        }
+        return titles;
+    }
+    public List<String> Listbyisbn()
+    {
+        List<String> isbns = new ArrayList<>();
+        for(Book book:booksList){
+            isbns.add(book.getTitle()+"\t"+book.getISBN());
+        }
+        return isbns;
+    }
+    public List<String> ListbyAuthorName()
+    {
+        List<String> authors = new ArrayList<>();
+        for(Book book:booksList){
+            authors.add(book.getTitle()+"\t"+book.getAuthorName());
+        }
+        return authors;
+    }
+    public List<String> ListbyQuantity()
+    {
+        List<String> quantities = new ArrayList<>();
+        for(Book book:booksList){
+            quantities.add(book.getTitle()+"\t"+book.getQuantity());
+        }
+        return quantities;
+    }
+    public List<String> ListbyPrice()
+    {
+        List<String> prices = new ArrayList<>();
+        for(Book book:booksList){
+            prices.add(book.getTitle()+"\t"+book.getPrice());
+        }
+        return prices;
+    }
+    public List<String> ListbyCategory()
+    {
+        List<String> categories = new ArrayList<>();
+        for(Book book:booksList){
+            categories.add(book.getTitle()+"\t"+book.getCategory());
+        }
+        return categories;
+    }
+     public List<String> ListAll()
+    {
+        List<String> all = new ArrayList<>();
+        for(Book book:booksList){
+            all.add("ISBN: "+book.getISBN()+"\tTitle:"+book.getTitle()+"\tAuthor: "+book.getAuthorName()+"\tCategory: "+book.getCategory()+
+                    "\tPrice: "+book.getPrice()+"\tQuantity: "+book.getQuantity());
+        }
+        return all;
+    }
+
+    // add , edit , remove , list
+    public static Book findBookByISBN(String isbn) {
+        for (Book book : booksList) {
+            if (book.getISBN().equals(isbn)) {
+                return book;
+            }
+        }
+        return null; // Book not found
+    }
+        
+    public static ArrayList<Book> selectCategory(Category category) {
+    ArrayList<Book> selectedBooks = new ArrayList<>();
+    for (Book book : booksList) {
+        if (book.getCategory() == category) {
+            selectedBooks.add(book);
+        }
+    }
+    return selectedBooks;
+}
+//    private void setBorrowCount(Book book) {
+//        String isbn = book.getISBN();
+//        if (borrowCount.containsKey(isbn)) {
+//            int count = borrowCount.get(isbn);
+//            borrowCount.put(isbn, count + 1);
+//        } else {
+//            borrowCount.put(isbn, 1);
+//        }
+//        
+//    }
+//    public void Borrow(Book book) {
+//        String isbn=book.ISBN;
+//        int count = borrowCount.getOrDefault(isbn, 0);
+//        borrowCount.put(isbn, count + 1);
+//    }
+    
+}
