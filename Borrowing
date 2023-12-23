@@ -1,0 +1,208 @@
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Scanner;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+class Borrowing implements Serializable {
+    private ArrayList<Book> books;
+    private ArrayList<Borrower> borrowers;
+    private Date startDate;
+    private Date endDate;
+    private double payment;
+    private double rating;
+    private int noOfOrder;
+
+    Borrowing(){
+    borrowers=new ArrayList<>();
+    
+    
+    }
+    public Borrowing(ArrayList<Book> books, ArrayList<Borrower> borrowers, Date startDate, Date endDate, double payment, double rating, int noOfOrder) {
+        this.books = books;
+        this.borrowers = borrowers;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.payment = payment;
+        this.rating = rating;
+        this.noOfOrder = noOfOrder;
+    }
+
+    public ArrayList<Book> getBooks() {
+        return books;
+    }
+
+    public void setBooks(ArrayList<Book> books) {
+        this.books = books;
+    }
+
+    public ArrayList<Borrower> getBorrowers() {
+        return borrowers;
+    }
+
+    public void setBorrowers(ArrayList<Borrower> borrowers) {
+        this.borrowers = borrowers;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public double getPayment() {
+        return payment;
+    }
+
+    public void setPayment(double payment) {
+        this.payment = payment;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
+    }
+
+    public int getNoOfOrder() {
+        return noOfOrder;
+    }
+
+    public void setNoOfOrder(int noOfOrder) {
+        this.noOfOrder = noOfOrder;
+    }
+
+    
+    
+    
+    
+    public void createBorrowing(Date startDate, Date endDate, ArrayList<Borrower> borrowers,
+                                ArrayList<Book> borrowedBooks, double totalPrice, int borrowingId) {
+      
+        ArrayList<Borrowing> borrowingList = new ArrayList<>();
+
+        Borrower newBorrower= new Borrower("fatma" , "15");
+        try (
+            FileOutputStream out = new FileOutputStream("borrowings.bin", true);
+             ObjectOutputStream objOut = new ObjectOutputStream(out)) {
+
+            Scanner in = new Scanner(System.in);
+            System.out.print("Order ID: ");
+            int orderNo = in.nextInt();
+            in.nextLine(); // Consume the newline character
+
+            System.out.print("Enter borrower name: ");
+            String borrowerName = in.nextLine();
+
+            Borrowing newBorrowing = new Borrowing();
+            newBorrowing.startDate = startDate;
+            newBorrowing.endDate = endDate;
+            newBorrowing.borrowers = borrowers;
+            newBorrowing.books = borrowedBooks;
+            newBorrowing.payment = totalPrice;
+            newBorrowing.noOfOrder = orderNo;
+
+            borrowingList.add(newBorrowing);
+            objOut.writeObject(borrowingList);
+            System.out.println("Borrowing record created and written to file.");
+
+        } catch (Exception e) {
+         System.out.println(e);
+        }
+    }
+
+    public void editBorrowing(int orderNo, String attributeName, Object newValue) {
+        try (FileInputStream in = new FileInputStream("borrowings.bin");
+             ObjectInputStream objIn = new ObjectInputStream(in)) {
+
+            ArrayList<Borrowing> borrowingList = (ArrayList<Borrowing>) objIn.readObject();
+
+            for (Borrowing borrowing : borrowingList) {
+                if (borrowing.noOfOrder == orderNo) {
+                    switch (attributeName.toLowerCase()) {
+                        case "startdate":
+                            borrowing.startDate = (Date) newValue;
+                            break;
+                        case "enddate":
+                            borrowing.endDate = (Date) newValue;
+                            break;
+                        case "borrowers":
+                            borrowing.borrowers = (ArrayList<Borrower>) newValue;
+                            break;
+                        case "books":
+                            borrowing.books = (ArrayList<Book>) newValue;
+                            break;
+                        case "payment":
+                            borrowing.payment = (Double) newValue;
+                            break;
+                        case "rating":
+                            borrowing.rating = (Double) newValue;
+                            break;
+                        default:
+                            System.out.println("Invalid attribute name.");
+                            return;
+                    }
+                    System.out.println("Borrowing record updated.");
+                    break;
+                }
+            }
+
+            try (FileOutputStream out = new FileOutputStream("borrowings.bin");
+                 ObjectOutputStream objOut = new ObjectOutputStream(out)) {
+                objOut.writeObject(borrowingList);
+                System.out.println("Borrowing records updated and written to file.");
+            }
+
+        } catch (Exception e) {
+         System.out.println(e);
+        }
+    }
+    
+       public void cancelBorrowingByAttributes(int orderNo, ArrayList<Borrower> borrowers,
+                                            ArrayList<Book> borrowedBooks) {
+        try (FileInputStream in = new FileInputStream("borrowings.bin");
+             ObjectInputStream objIn = new ObjectInputStream(in)) {
+
+            ArrayList<Borrowing> borrowingList = (ArrayList<Borrowing>) objIn.readObject();
+
+            for (int i = 0; i < borrowingList.size(); i++) {
+                Borrowing borrowing = borrowingList.get(i);
+                if (borrowing.noOfOrder == orderNo &&
+                        borrowing.borrowers.equals(borrowers) && borrowing.books.equals(borrowedBooks)) {
+                    borrowingList.remove(i);
+                    System.out.println("Borrowing record canceled.");
+                    break;
+                }
+            }
+
+            try (FileOutputStream out = new FileOutputStream("borrowings.bin");
+                 ObjectOutputStream objOut = new ObjectOutputStream(out)) {
+                objOut.writeObject(borrowingList);
+                System.out.println("Borrowing records updated and written to file.");
+            }
+
+        } catch (Exception e) {
+            
+             System.out.println(e);
+        
+            
+        }
+        
+        }
+}
+
