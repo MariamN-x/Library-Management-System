@@ -1,0 +1,124 @@
+
+package javaapplication66;
+
+import java.util.ArrayList;
+
+  
+    
+   
+public class Supplier {
+    private String sname; 
+    private int id ;
+    private ArrayList<Order> orderlist;
+
+    
+    
+    public Supplier(String sname, int id, ArrayList<Order> orderlist) {
+        this.sname = sname;
+        this.id = id;
+        this.orderlist = orderlist;
+    }
+
+    
+    
+    
+    public String getSname() {
+        return sname;
+    }
+
+    public void setSname(String sname) {
+        this.sname = sname;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public ArrayList<Order> getOrderlist() {
+        return orderlist;
+    }
+
+    public void setOrderlist(ArrayList<Order> orderlist) {
+        this.orderlist = orderlist;
+    }
+    
+    
+    
+    public int numberOfOrders() {
+        return orderlist.size();
+    }
+
+    public double totalRevenue() {
+        double revenue = 0.0;
+        for (Order order : orderlist) {
+            revenue += order.calculatePrice();
+        }
+        return revenue;
+    }
+
+    public Supplier maxOrderSupplier(ArrayList<Supplier> suppliers) {
+        Supplier maxOrderSupplier = null;
+        int maxOrders = 0;
+        for (Supplier supplier : suppliers) {
+            int orders = supplier.numberOfOrders();
+            if (orders > maxOrders) {
+                maxOrders = orders;
+                maxOrderSupplier = supplier;
+            }
+        }
+        return maxOrderSupplier;
+    }
+
+    
+     
+    public Supplier minOrderSupplier(ArrayList<Supplier> suppliers) {
+    Supplier minOrderSupplier = null;
+    int minOrders = Integer.MAX_VALUE;
+    for (Supplier supplier : suppliers) {
+        int orders = supplier.numberOfOrders();
+        if (orders < minOrders) {
+            minOrders = orders;
+            minOrderSupplier = supplier;
+        }
+    }
+    return minOrderSupplier;
+}
+
+    
+    
+    
+    
+    public Supplier maxRevenueSupplier(ArrayList<Supplier> suppliers) {
+        Supplier maxRevenueSupplier = null;
+        double maxRevenue = 0.0;
+        for (Supplier supplier : suppliers) {
+            double revenue = supplier.totalRevenue();
+            if (revenue > maxRevenue) {
+                maxRevenue = revenue;
+                maxRevenueSupplier = supplier;
+            }
+        }
+        return maxRevenueSupplier;
+    }
+    
+    
+   
+public Supplier minRevenueSupplier(ArrayList<Supplier> suppliers) {
+    Supplier minRevenueSupplier = null;
+    double minRevenue = Double.MAX_VALUE;
+    for (Supplier supplier : suppliers) {
+        double revenue = supplier.totalRevenue();
+        if (revenue < minRevenue) {
+            minRevenue = revenue;
+            minRevenueSupplier = supplier;
+        }
+    }
+    return minRevenueSupplier;
+}
+    
+  
+}
