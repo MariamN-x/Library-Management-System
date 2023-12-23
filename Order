@@ -1,1 +1,64 @@
-O
+
+import java.util.ArrayList;
+
+public class Order {
+    private int ordernum;
+    private ArrayList<Book> booklist;
+    private double price;
+    private int totalAmountOfOrders;
+
+    public Order(int ordernum, ArrayList<Book> booklist, double price) {
+        this.ordernum = ordernum;
+        this.booklist = booklist;
+        this.price = price;
+        this.totalAmountOfOrders = booklist.size();
+    }
+
+    public void addOrder(Book book) {
+        booklist.add(book);
+        totalAmountOfOrders++;
+        price += book.getPrice();
+    }
+
+    public void editOrder(int orderIndex, Book newBook) {
+        if (orderIndex >= 0 && orderIndex < booklist.size()) {
+            Book oldBook = booklist.get(orderIndex);
+            price -= oldBook.getPrice();
+            price += newBook.getPrice();
+            booklist.set(orderIndex, newBook);
+        }
+    }
+
+    public void cancelOrder(int orderIndex) {
+        if (orderIndex >= 0 && orderIndex < booklist.size()) {
+            Book canceledBook = booklist.remove(orderIndex);
+            totalAmountOfOrders--;
+            price -= canceledBook.getPrice();
+        }
+    }
+
+    public void listAllOrders() {
+        System.out.println("Order Number: " + ordernum);
+        System.out.println("Total Amount of Orders: " + totalAmountOfOrders);
+        System.out.println("Price: $" + price);
+        System.out.println("Books in Order:");
+        for (int i = 0; i < booklist.size(); i++) {
+            Book book = booklist.get(i);
+            System.out.println("Book " + (i + 1));
+            System.out.println("Title: " + book.getTitle());
+            System.out.println("Author: " + book.getAuthor());
+            System.out.println("Price: $" + book.getPrice());
+            System.out.println("---------------------------");
+        }
+    }
+
+  
+    public double calculatePrice() {
+        double totalPrice = 0.0;
+        for (Book book : booklist) {
+            totalPrice += book.getPrice();
+        }
+        return totalPrice;
+    }
+   
+}
