@@ -1,8 +1,11 @@
+
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -20,7 +23,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class FirstPage extends Application implements Serializable{
-    protected static List<User> users;
+   // protected static List<User> users;
     protected Stage primaryStage;
     protected TextField usernameField;
     protected PasswordField passwordField;
@@ -30,7 +33,7 @@ public class FirstPage extends Application implements Serializable{
     protected Button signup2;
     protected ObservableList<String> observableList;
     private User accountObj;
-    private ComboBox<String> combo;
+    private Admin adminAccount=new Admin();
    
     @Override
     public void start(Stage primaryStage) {
@@ -38,11 +41,17 @@ public class FirstPage extends Application implements Serializable{
         primaryStage.setTitle("Library System");
         LoginScene(primaryStage);
         primaryStage.setResizable(false);
+        accountObj = new User();
         primaryStage.show();
 
     }    
+
+    public void setAdminAccount(Admin adminAccount) {
+        this.adminAccount = adminAccount;
+    }
+    
 protected boolean Login(String username, String password, Stage primaryStage) {
-    accountObj = User.login(users, username, password);
+    accountObj = accountObj.login(User.users, username, password); //call login method in u
 
     if (accountObj != null) {
         System.out.println("Login successful!");
@@ -67,30 +76,29 @@ protected boolean Login(String username, String password, Stage primaryStage) {
     return false;
 }
 
-protected boolean signup(String username, String password, Stage primaryStage, String selectedItem) {
+protected boolean signup(String username, String password, Stage primaryStage) {
     if (isUsernameExists(username)) {
         showAlert("Signup Failed!\nUsername ALREADY taken", Alert.AlertType.ERROR);
         return false;          
     } else {
             accountObj = new Borrower(username, password, User.UserType.BORROWER);
-            users.add(accountObj);
+            accountObj.signUp(User.users, accountObj); // called from user class
             primaryStage.setScene(BorrowerScene());
         }
+    //reset fields to be used later
         usernameField.clear();
         passwordField.clear();
-
         return true;
 }
 
 protected boolean isUsernameExists(String username) {
-    for (User user : users) {
+    for (User user : User.users) {
         if (user.getUserName().equals(username)) {
             return true; 
         }
     }
     return false; 
 }
-
 //scenes
 protected void LoginScene(Stage primaryStage) {
         Image image = new Image("file:ll.png");
@@ -197,7 +205,7 @@ public Scene signUpScene() {
     signup2.setOnAction(e -> {
         String username = usernameField.getText();
         String password = passwordField.getText();
-        signup(username,password,primaryStage,combo.getSelectionModel().getSelectedItem());
+        signup(username,password,primaryStage);
     
     });
 
@@ -229,40 +237,65 @@ private Scene AdminScene() {
     imageView4.setFitWidth(150);
     imageView4.setFitHeight(150);
     
-
+    Image image5=new Image("file:add_book.png");
+    ImageView imageView5 = new ImageView(image5);
+    imageView5.setFitWidth(120);
+    imageView5.setFitHeight(120);
+    
+    Image image6=new Image("file:edit_book.png");
+    ImageView imageView6 = new ImageView(image6);
+    imageView6.setFitWidth(100);
+    imageView6.setFitHeight(100);
+    
+    Image image7=new Image("file:icons8-remove-book-100.png");
+    ImageView imageView7 = new ImageView(image7);
+    imageView7.setFitWidth(120);
+    imageView7.setFitHeight(120);
+    
+    Image image8=new Image("file:list_book.png");
+    ImageView imageView8 = new ImageView(image8);
+    imageView8.setFitWidth(120);
+    imageView8.setFitHeight(120);
     
 //add
-    Label addLbl = new Label("\t\tAdd");
-    addLbl.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: white;");
-    ObservableList<String> addOptions = FXCollections.observableArrayList("Add Admin", "Add Librarian", "Add Borrower");
-    combo = new ComboBox<>(addOptions);
-    combo.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px;-fx-pref-height: 30px;"); 
-    combo.setOnAction(e -> {
-    String selectedItem = combo.getSelectionModel().getSelectedItem();
-    combo.setOnAction(e -> {
-    String selectedItem = combo.getSelectionModel().getSelectedItem();
+Label addLbl = new Label("\tAdd User");
+addLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: white;");
+ObservableList<String> addOptions = FXCollections.observableArrayList("Add Admin", "Add Librarian", "Add Borrower");
+ComboBox<String>combo1 = new ComboBox<>(addOptions);
+combo1.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px;-fx-pref-height: 30px;");
+combo1.setOnAction(e -> {
+    String selectedItem = combo1.getSelectionModel().getSelectedItem();
     if (selectedItem != null) {
-        User.UserType userType1 = getUserTypeFromSelectedItem(selectedItem);
-        showAddUserDialog(userType, user -> {
-            showAddUserDialog(userType1);
-            users.add(user);
-            System.out.println("User added: " + user.getUserName() + " (" + user.getUserType() + ")");
-        });
+        User.UserType userType = getUserTypeFromSelectedItem(selectedItem);
+        showAddUserDialog(userType);
     }
 });
+//add book
+    Button addBookButton = new Button("Add Book");
+    addBookButton.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
+    addBookButton.setOnAction(e -> showBookDialog(true));
 
-//edit 
+//edit user
     Button editUserButton = new Button("Edit User");
     editUserButton.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
     editUserButton.setOnAction(e -> showEditUserDialog());
-//remove    
+    //book
+    Button editBookButton = new Button("Edit Book");
+    editBookButton.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
+    editBookButton.setOnAction(e -> showBookDialog(false));
+
+//remove user   
     Button removeUserButton = new Button("Remove User");
     removeUserButton.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
     removeUserButton.setOnAction(e -> showRemoveUserDialog());
+    //book
+    Button removeBookButton = new Button("Remove Book");
+    removeBookButton.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
+    removeBookButton.setOnAction(e -> showRemoveBookDialog());
 
-//list
+//list user
     Label listLbl = new Label("\t\tList");
-    listLbl.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: white;");
+    listLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: white;");
     ObservableList<String> listOptions = FXCollections.observableArrayList(
     "List by Usernames", "List by Passwords", "List by User Type", "List ALL");
     ComboBox<String> combo2 = new ComboBox<>(listOptions);
@@ -288,19 +321,75 @@ private Scene AdminScene() {
                 break;
         }
     }
-    showUserListDialog(use);
+    showListDialog(use);
+});
+    //list book
+    Label listLbl2 = new Label("\t\tList Books");
+    listLbl2.setStyle("-fx-font-size: 12px; -fx-text-fill: white;");
+    ObservableList<String> listBookOptions = FXCollections.observableArrayList(
+    "List by Usernames", "List by title", "List by isbn", "List by author name ",
+    "List by category","List by Quantity","List by price","List ALL");
+    ComboBox<String> combo3 = new ComboBox<>(listBookOptions);
+    combo3.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px;-fx-pref-height: 30px;");
+
+    combo3.setOnAction(e -> {
+    List<String> bookList = new ArrayList<>();
+    Book bok=new Book();
+    String selectedItem3 = combo3.getSelectionModel().getSelectedItem();
+    if (selectedItem3 != null) {
+        switch (selectedItem3) {
+            case "List by title":
+                bookList=bok.ListbyTitle();
+                break;
+            case "List by isbn":
+                 bookList=bok.Listbyisbn(); 
+                break;
+            case "List by author name":
+                bookList=bok.ListbyAuthorName();
+                break;
+            case "List by category":
+                bookList=bok.ListbyCategory();
+                break;    
+            case "List by Quantity":
+                bookList=bok.ListbyQuantity();
+                break;
+            case "List by price":
+                bookList=bok.ListbyPrice();
+                break;     
+            case "List ALL":
+                bookList=bok.ListAll();
+                break;
+        }
+    }
+    //list all (isbn,title,author,category,price,quantity)
+    showListDialog(bookList);
 });
 
+// books in the same category
+    Button Books_categButton = new Button("Books&category");
+    Books_categButton.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
+    Books_categButton.setOnAction(e -> showBookByCategory());
+    
     grid.add(imageView1, 0, 0);
     grid.add(imageView2, 1, 0);
     grid.add(imageView3, 2, 0);
     grid.add(imageView4, 3, 0);
-    grid.add(combo, 0, 2);
+    grid.add(imageView5, 0, 3);
+    grid.add(addBookButton,0,4);
+    grid.add(imageView6, 1, 3);
+    grid.add(editBookButton,1,4);
+    grid.add(imageView7, 2, 3);
+    grid.add(removeBookButton, 2, 4);
+    grid.add(imageView8, 3, 3);
+    grid.add(combo1, 0, 2);
     grid.add(addLbl, 0, 2);
     grid.add(editUserButton, 1, 2);
     grid.add(removeUserButton, 2, 2);
     grid.add(combo2,3,2);
     grid.add(listLbl,3,2);
+    grid.add(combo3, 3, 4);
+    grid.add(listLbl2, 3, 4);
+    grid.add(Books_categButton,0,5);
     Scene newScene = new Scene(grid, 1000, 800);
     return newScene;
 }
@@ -330,16 +419,104 @@ private void showAddUserDialog(User.UserType userType) {
             String username = usernameField.getText();
             String password = passwordField.getText();
             User user = new User(username, password, userType);
-            users.add(user);  // Directly add the user to the list
-            System.out.println("User added: " + user.getUserName() + " (" + user.getUserType() + ")");
+            User.users.add(user);  // Directly add the user to the list
+            showAlert("User added: " + user.getUserName() + " (" + user.getUserType() + ")",Alert.AlertType.INFORMATION);
+        }
+        return null;
+    });
+    dialog.showAndWait();
+}
+
+//add & edit book
+public boolean isUniqueISBN(String isbn) {
+        for (Book book : Book.booksList) {
+            if (book.getISBN().equals(isbn)) {
+                return false;
+            }
+        }
+        return true; 
+}
+private void showBookDialog(boolean isAddOperation) { // true for add && false for edit
+    Dialog<Book> dialog = new Dialog<>();
+    dialog.setTitle(isAddOperation ? "Add Book" : "Edit Book");
+    dialog.setHeaderText(isAddOperation ? "Enter book details: " : "Enter the ISBN for this book: ");
+
+    ButtonType actionButtonType = new ButtonType(isAddOperation ? "Add" : "Edit", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(actionButtonType, ButtonType.CANCEL);
+
+    // Create the ISBN, title, author name, quantity, and price labels and text fields.
+    TextField isbnField = new TextField();
+    TextField titleField = new TextField();
+    TextField authorField = new TextField();
+    TextField quantityField = new TextField();
+    TextField priceField = new TextField();
+    TextField categoryField = new TextField();
+    categoryField.setPromptText("UPPER CASE ONLY");
+
+    // Set the layout of the labels and text fields in a grid.
+    GridPane grid = new GridPane();
+    grid.setVgap(15);
+    grid.setHgap(5);
+    grid.add(new Label("ISBN:"), 0, 0);
+    grid.add(isbnField, 1, 0);
+    grid.add(new Label("Title:"), 0, 1);
+    grid.add(titleField, 1, 1);
+    grid.add(new Label("Author:"), 0, 2);
+    grid.add(authorField, 1, 2);
+    grid.add(new Label("Quantity:"), 0, 3);
+    grid.add(quantityField, 1, 3);
+    grid.add(new Label("Price:"), 0, 4);
+    grid.add(priceField, 1, 4);
+    grid.add(new Label("Category:"), 0, 5);
+    grid.add(categoryField, 1, 5);
+
+    // Enable/Disable add/edit button depending on whether all fields are filled.
+    Node actionButtonNode = dialog.getDialogPane().lookupButton(actionButtonType);
+    actionButtonNode.setDisable(false);
+    dialog.getDialogPane().setContent(grid);
+
+    // Listen for changes in text fields to enable/disable the add/edit button.
+    List<TextField> fields = Arrays.asList(isbnField, titleField, authorField, quantityField, priceField, categoryField);
+    fields.forEach(field -> {
+        field.textProperty().addListener((observable, oldValue, newValue) ->
+                actionButtonNode.setDisable(fields.stream().anyMatch(f -> f.getText().trim().isEmpty())));
+    });
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == actionButtonType) {
+            try {
+                String isbn = isbnField.getText();
+                String title = titleField.getText();
+                String author = authorField.getText();
+                int quantity = Integer.parseInt(quantityField.getText());
+                double price = Double.parseDouble(priceField.getText());
+                String categoryText = categoryField.getText();
+                Book.Category category = Book.Category.valueOf(categoryText.toUpperCase());
+
+                if (isAddOperation) {
+                    if (!isUniqueISBN(isbn)) {
+                        showAlert("ISBN is not unique! Please enter a unique ISBN.", Alert.AlertType.ERROR);
+                        return null;
+                    }
+                    // Call the addBook method in Admin class
+                    adminAccount.AddBook(isbn, title, author, quantity, price, category);
+                    showAlert("Book " + title + " added successfully!", Alert.AlertType.INFORMATION);
+                } else {
+                    // Call the editBook method in Admin class
+                    adminAccount.editBook(isbn, title, author, quantity, price, category);
+                    showAlert("Book " + title + " edited successfully!", Alert.AlertType.INFORMATION);
+                }
+            } catch (NumberFormatException e) {
+                showAlert("Invalid numeric input!", Alert.AlertType.ERROR);
+            } catch (IllegalArgumentException e) {
+                showAlert("Invalid category input!", Alert.AlertType.ERROR);
+            }
         }
         return null;
     });
 
-    // Show the dialog
     dialog.showAndWait();
 }
-
 private User.UserType getUserTypeFromSelectedItem(String selectedItem) {
     switch (selectedItem) {
         case "Add Admin":
@@ -353,10 +530,9 @@ private User.UserType getUserTypeFromSelectedItem(String selectedItem) {
     }
 }
 
-
 protected boolean editUser(String oldUsername, String newUsername, String newPassword) { //to show dialog or alert
     User userToEdit = new User();
-    userToEdit=userToEdit.editUser(users, oldUsername, newUsername, newPassword);// called from user class
+    userToEdit=userToEdit.editUser(User.users, oldUsername, newUsername, newPassword);// called from user class
     if (userToEdit != null) {
         if (!oldUsername.equals(newUsername) && isUsernameExists(newUsername)) {
             showAlert("Edit Failed!\nNew username is already taken", Alert.AlertType.ERROR);
@@ -402,15 +578,55 @@ private void showEditUserDialog() {
 
 protected boolean removeUser(String username) {
     User userToRemove= new Admin();
-    userToRemove=userToRemove.removeUser(users, username);
+    userToRemove=userToRemove.removeUser(User.users, username);
     if (userToRemove != null) {
-        users.remove(userToRemove);
+        User.users.remove(userToRemove);
         showAlert("User removed successfully", Alert.AlertType.INFORMATION);
         return true;
     } else {
         showAlert("User not found", Alert.AlertType.ERROR);
         return false;
     }
+}
+public void showRemoveBookDialog() {
+    Dialog<Book> dialog = new Dialog<>();
+    dialog.setTitle("Remove Book");
+    dialog.setHeaderText("Enter ISBN to remove the book:");
+
+    ButtonType removeButton = new ButtonType("Remove", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(removeButton, ButtonType.CANCEL);
+
+    TextField isbnField = new TextField();
+    isbnField.setPromptText("ISBN");
+
+    // Enable/Disable remove button depending on whether the ISBN field is filled.
+    Node removeButtonNode = dialog.getDialogPane().lookupButton(removeButton);
+    removeButtonNode.setDisable(true);
+
+    isbnField.textProperty().addListener((observable, oldValue, newValue) -> {
+        removeButtonNode.setDisable(newValue.trim().isEmpty());
+    });
+
+    GridPane grid = new GridPane();
+    grid.setVgap(15);
+    grid.setHgap(5);
+    grid.add(new Label("ISBN:"), 0, 0);
+    grid.add(isbnField, 1, 0);
+
+    dialog.getDialogPane().setContent(grid);
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == removeButton) {
+            String isbn = isbnField.getText();
+            if(adminAccount.removeBook(isbn)) //from class admin
+              showAlert("Book with ISBN " + isbn + " removed successfully!", Alert.AlertType.INFORMATION);
+            else
+              showAlert("Book with ISBN " + isbn + " not found!", Alert.AlertType.WARNING);  
+        }
+        return null;
+    });
+
+    dialog.showAndWait();
 }
 
 private void showRemoveUserDialog() {
@@ -444,18 +660,72 @@ private void showRemoveUserDialog() {
     });
 }
 
-private void showUserListDialog(List<String> userList) {
+private void showListDialog(List<String> list) {
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
-    alert.setTitle("User List");
-    alert.setHeaderText(null);
-    
-    StringBuilder contentText = new StringBuilder();
-    for (String user : userList) {
-        contentText.append(user).append("\n");
+        alert.setTitle("User List");
+        alert.setHeaderText(null);
+
+        StringBuilder contentText = new StringBuilder();
+        for (String item : list) {
+            contentText.append(item).append("\n\n");
+        }
+        // TextArea to enable text wrapping
+        TextArea textArea = new TextArea(contentText.toString());
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setContent(textArea);
+        alert.showAndWait();
+}
+
+private void showBookByCategory() {
+    Dialog<Book.Category> dialog = new Dialog<>();
+    dialog.setTitle("Select Category");
+    dialog.setHeaderText("Choose a category to list books:");
+
+    ButtonType selectButtonType = new ButtonType("Select", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(selectButtonType, ButtonType.CANCEL);
+
+    ComboBox<Book.Category> categoryComboBox = new ComboBox<>();
+    categoryComboBox.getItems().addAll(Book.Category.values());
+    categoryComboBox.setPromptText("Select Category");
+
+    GridPane grid = new GridPane();
+    grid.add(new Label("Category:"), 0, 0);
+    grid.add(categoryComboBox, 1, 0);
+
+    dialog.getDialogPane().setContent(grid);
+
+    Node selectButtonNode = dialog.getDialogPane().lookupButton(selectButtonType);
+    selectButtonNode.setDisable(true);
+
+    categoryComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
+            selectButtonNode.setDisable(newValue == null));
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == selectButtonType) {
+            return categoryComboBox.getValue();
+        }
+        return null;
+    });
+
+    Optional<Book.Category> result = dialog.showAndWait();
+    result.ifPresent(category -> listBooksByCategory(category));
+}
+ private void listBooksByCategory(Book.Category category) {
+    ArrayList<Book> selectedCategoryBooks=Book.selectCategory(category); 
+    ArrayList<String> stringRep = new ArrayList<>(); //to call the generic list method
+    if (!selectedCategoryBooks.isEmpty()) {  
+        for (Book book : selectedCategoryBooks) {
+            stringRep.add("ISBN: "+book.getISBN()+"\tTitle:"+book.getTitle()+"\tAuthor: "+book.getAuthorName()+"\tCategory: "+book.getCategory()+
+                    "\tPrice: "+book.getPrice()+"\tQuantity: "+book.getQuantity());
+        }
+    } else {
+        showAlert("No books found in the selected category.", Alert.AlertType.INFORMATION);
     }
 
-    alert.setContentText(contentText.toString());
-    alert.showAndWait();
+    showListDialog(stringRep);
 }
 
 protected Scene LibrarianScene() {
@@ -485,8 +755,23 @@ private void showAlert(String message, Alert.AlertType alertType) {
         alert.showAndWait();
     }
 public static void main(String[] args) {
-        users=User.readUsersFromFile("users.bin");
-        launch(args);
-        Admin.writeUsersToFile(users,"users.bin");       
+    User.users = Files.readObjectsFromFile("users.bin");
+    
+    if (User.users == null) {
+        System.out.println("Failed to load user data from file.");
+        return;
     }
+    List<User> users = Files.readObjectsFromFile("users.bin");
+    for (User user : users) {
+        System.out.println(user.getUserName()+"\t"+user.getPassword());
+    }
+    Book.booksList = Files.readObjectsFromFile("book.bin");
+    for(Book book:Book.booksList)
+    {
+        System.out.println(book.getTitle());
+    }
+    launch(args);
+    Files.writeObjectsToFile(User.users, "users.bin");
+    Files.writeObjectsToFile(Book.booksList, "book.bin");
+}
 }
