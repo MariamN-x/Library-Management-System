@@ -1,17 +1,4 @@
 package library;
-//
-//        * add book
-//        * edit book
-//        * search by any field 
-//        * remove 
-//        * list all books
-//        * number of borrows over specific period of time 
-//        * most borrowed book with category and time 
-//        * least borrowed book with category and time 
-//        * total profits 
-//        * most revenue with category and time 
-//        * least revenue with category and time 
-//     
 
  
 import java.util.ArrayList;
