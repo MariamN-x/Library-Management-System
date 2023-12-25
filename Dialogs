@@ -1,0 +1,387 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+/**
+ *
+ * @author Dell
+ */
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+public class Dialogs {
+
+    
+    // user 
+    //add
+    protected void showAddUserDialog(User.UserType userType) {
+    Dialog<User> dialog = new Dialog<>();
+    dialog.setTitle("Add User");
+    dialog.setHeaderText("Enter user details:");
+
+    TextField usernameField = new TextField();
+    PasswordField passwordField = new PasswordField();
+
+    dialog.getDialogPane().setContent(new VBox(10,
+            new Label("Username:"), usernameField,
+            new Label("Password:"), passwordField));
+
+    ButtonType addButton = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(addButton, ButtonType.CANCEL);
+
+    Node addButtonNode = dialog.getDialogPane().lookupButton(addButton);
+    addButtonNode.setDisable(true);
+    usernameField.textProperty().addListener((observable, oldValue, newValue) -> {
+        addButtonNode.setDisable(newValue.trim().isEmpty());
+    });
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == addButton) {
+            String username = usernameField.getText();
+            String password = passwordField.getText();
+            User user = new User(username, password, userType);
+            User.users.add(user);  // Directly add the user to the list
+            showAlert("User added: " + user.getUserName() + " (" + user.getUserType() + ")",Alert.AlertType.INFORMATION);
+        }
+        return null;
+    });
+    dialog.showAndWait();
+}
+//edit
+protected void showEditUserDialog() {
+    TextInputDialog oldUsernameDialog = new TextInputDialog();
+    oldUsernameDialog.setTitle("Edit User");
+    oldUsernameDialog.setHeaderText("Enter old username:");
+    Optional<String> oldUsernameResult = oldUsernameDialog.showAndWait();
+
+    oldUsernameResult.ifPresent(oldUsername -> {
+        // Now, ask for the new username and password
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Edit User");
+        dialog.setHeaderText("Enter new username and password:");
+        ButtonType editButtonType = new ButtonType("Edit", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(editButtonType, ButtonType.CANCEL);
+        TextField newUsernameField = new TextField();
+        PasswordField newPasswordField = new PasswordField();
+        dialog.getDialogPane().setContent(new VBox(10, new Label("New Username:"), newUsernameField, new Label("New Password:"), newPasswordField));
+        Node editButton = dialog.getDialogPane().lookupButton(editButtonType);
+        editButton.setDisable(true);
+        newUsernameField.textProperty().addListener((observable, oldValue, newValue) -> {
+            editButton.setDisable(newValue.trim().isEmpty());
+        });
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == editButtonType) {
+                return newUsernameField.getText() + "," + newPasswordField.getText();
+            }
+            return null;
+        });
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(newUserData -> {
+            String[] userData = newUserData.split(",");
+            String newUsername = userData[0];
+            String newPassword = userData[1];
+            new FirstPage().editUser(oldUsername, newUsername, newPassword);
+        });
+    });
+}
+    
+//remove
+protected void showRemoveUserDialog() {
+    Dialog<String> dialog = new Dialog<>();
+    dialog.setTitle("Remove User");
+    dialog.setHeaderText("Enter username:");
+
+    ButtonType removeButtonType = new ButtonType("Remove", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(removeButtonType, ButtonType.CANCEL);
+
+    TextField usernameField = new TextField();
+    dialog.getDialogPane().setContent(new VBox(10, new Label("Username:"), usernameField));
+
+    Node removeButton = dialog.getDialogPane().lookupButton(removeButtonType);
+    removeButton.setDisable(true);
+
+    usernameField.textProperty().addListener((observable, oldValue, newValue) -> {
+        removeButton.setDisable(newValue.trim().isEmpty());
+    });
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == removeButtonType) {
+            return usernameField.getText();
+        }
+        return null;
+    });
+
+    Optional<String> result = dialog.showAndWait();
+    result.ifPresent(username -> {
+         new FirstPage().removeUser(username);
+    });
+}
+    
+
+//list
+protected void showListDialog(List<String> list) {
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("User List");
+        alert.setHeaderText(null);
+
+        StringBuilder contentText = new StringBuilder();
+        for (String item : list) {
+            contentText.append(item).append("\n\n");
+        }
+        // TextArea to enable text wrapping
+        TextArea textArea = new TextArea(contentText.toString());
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setContent(textArea);
+        alert.showAndWait();
+}
+
+//add & edit book
+protected void showBookDialog(boolean isAddOperation) { // true for add && false for edit
+    Dialog<Book> dialog = new Dialog<>();
+    dialog.setTitle(isAddOperation ? "Add Book" : "Edit Book");
+    dialog.setHeaderText(isAddOperation ? "Enter book details: " : "Enter the ISBN for this book: ");
+
+    ButtonType actionButtonType = new ButtonType(isAddOperation ? "Add" : "Edit", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(actionButtonType, ButtonType.CANCEL);
+
+    // Create the ISBN, title, author name, quantity, and price labels and text fields.
+    TextField isbnField = new TextField();
+    TextField titleField = new TextField();
+    TextField authorField = new TextField();
+    TextField quantityField = new TextField();
+    TextField priceField = new TextField();
+    TextField categoryField = new TextField();
+    categoryField.setPromptText("UPPER CASE ONLY");
+
+    // Set the layout of the labels and text fields in a grid.
+    GridPane grid = new GridPane();
+    grid.setVgap(15);
+    grid.setHgap(5);
+    grid.add(new Label("ISBN:"), 0, 0);
+    grid.add(isbnField, 1, 0);
+    grid.add(new Label("Title:"), 0, 1);
+    grid.add(titleField, 1, 1);
+    grid.add(new Label("Author:"), 0, 2);
+    grid.add(authorField, 1, 2);
+    grid.add(new Label("Quantity:"), 0, 3);
+    grid.add(quantityField, 1, 3);
+    grid.add(new Label("Price:"), 0, 4);
+    grid.add(priceField, 1, 4);
+    grid.add(new Label("Category:"), 0, 5);
+    grid.add(categoryField, 1, 5);
+
+    // Enable/Disable add/edit button depending on whether all fields are filled.
+    Node actionButtonNode = dialog.getDialogPane().lookupButton(actionButtonType);
+    actionButtonNode.setDisable(false);
+    dialog.getDialogPane().setContent(grid);
+
+    // Listen for changes in text fields to enable/disable the add/edit button.
+    List<TextField> fields = Arrays.asList(isbnField, titleField, authorField, quantityField, priceField, categoryField);
+    fields.forEach(field -> {
+        field.textProperty().addListener((observable, oldValue, newValue) ->
+                actionButtonNode.setDisable(fields.stream().anyMatch(f -> f.getText().trim().isEmpty())));
+    });
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == actionButtonType) {
+            try {
+                String isbn = isbnField.getText();
+                String title = titleField.getText();
+                String author = authorField.getText();
+                int quantity = Integer.parseInt(quantityField.getText());
+                double price = Double.parseDouble(priceField.getText());
+                String categoryText = categoryField.getText();
+                Book.Category category = Book.Category.valueOf(categoryText.toUpperCase());
+
+                if (isAddOperation) {
+                    if (! new FirstPage().isUniqueISBN(isbn)) {
+                        showAlert("ISBN is not unique! Please enter a unique ISBN.", Alert.AlertType.ERROR);
+                        return null;
+                    }
+                    // Call the addBook method in Admin class
+                     new FirstPage().adminAccount.AddBook(isbn, title, author, quantity, price, category);
+                    showAlert("Book " + title + " added successfully!", Alert.AlertType.INFORMATION);
+                } else {
+                    // Call the editBook method in Admin class
+                     new FirstPage().adminAccount.editBook(isbn, title, author, quantity, price, category);
+                    showAlert("Book " + title + " edited successfully!", Alert.AlertType.INFORMATION);
+                }
+            } catch (NumberFormatException e) {
+                showAlert("Invalid ISBN!", Alert.AlertType.ERROR);
+            } catch (IllegalArgumentException e) {
+                showAlert("Invalid category!", Alert.AlertType.ERROR);
+            }
+        }
+        return null;
+    });
+
+    dialog.showAndWait();
+}
+
+//remove book
+protected void showRemoveBookDialog() {
+    Dialog<Book> dialog = new Dialog<>();
+    dialog.setTitle("Remove Book");
+    dialog.setHeaderText("Enter ISBN to remove the book:");
+
+    ButtonType removeButton = new ButtonType("Remove", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(removeButton, ButtonType.CANCEL);
+
+    TextField isbnField = new TextField();
+    isbnField.setPromptText("ISBN");
+
+    // Enable/Disable remove button depending on whether the ISBN field is filled.
+    Node removeButtonNode = dialog.getDialogPane().lookupButton(removeButton);
+    removeButtonNode.setDisable(true);
+
+    isbnField.textProperty().addListener((observable, oldValue, newValue) -> {
+        removeButtonNode.setDisable(newValue.trim().isEmpty());
+    });
+
+    GridPane grid = new GridPane();
+    grid.setVgap(15);
+    grid.setHgap(5);
+    grid.add(new Label("ISBN:"), 0, 0);
+    grid.add(isbnField, 1, 0);
+
+    dialog.getDialogPane().setContent(grid);
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == removeButton) {
+            String isbn = isbnField.getText();
+            if( new FirstPage().adminAccount.removeBook(isbn)) //from class admin
+              showAlert("Book with ISBN " + isbn + " removed successfully!", Alert.AlertType.INFORMATION);
+            else
+              showAlert("Book with ISBN " + isbn + " not found!", Alert.AlertType.WARNING);  
+        }
+        return null;
+    });
+
+    dialog.showAndWait();
+}
+
+
+ protected void listBooksByCategoryDialog(Book.Category category) {
+    ArrayList<Book> selectedCategoryBooks=Book.selectCategory(category); 
+    ArrayList<String> stringRep = new ArrayList<>(); //to call the generic list method
+    if (!selectedCategoryBooks.isEmpty()) {  
+        for (Book book : selectedCategoryBooks) {
+            stringRep.add("ISBN: "+book.getISBN()+"\tTitle:"+book.getTitle()+"\tAuthor: "+book.getAuthorName()+"\tCategory: "+book.getCategory()+
+                    "\tPrice: "+book.getPrice()+"\tQuantity: "+book.getQuantity());
+        }
+    } else {
+        showAlert("No books found in the selected category.", Alert.AlertType.INFORMATION);
+    }
+
+   showListDialog(stringRep);
+}
+
+protected void showBookByCategoryDialog() {
+    Dialog<Book.Category> dialog = new Dialog<>();
+    dialog.setTitle("Select Category");
+    dialog.setHeaderText("Choose a category to list books:");
+
+    ButtonType selectButtonType = new ButtonType("Select", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(selectButtonType, ButtonType.CANCEL);
+
+    ComboBox<Book.Category> categoryComboBox = new ComboBox<>();
+    categoryComboBox.getItems().addAll(Book.Category.values());
+    categoryComboBox.setPromptText("Select Category");
+
+    GridPane grid = new GridPane();
+    grid.add(new Label("Category:"), 0, 0);
+    grid.add(categoryComboBox, 1, 0);
+
+    dialog.getDialogPane().setContent(grid);
+
+    Node selectButtonNode = dialog.getDialogPane().lookupButton(selectButtonType);
+    selectButtonNode.setDisable(true);
+
+    categoryComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
+            selectButtonNode.setDisable(newValue == null));
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == selectButtonType) {
+            return categoryComboBox.getValue();
+        }
+        return null;
+    });
+
+    Optional<Book.Category> result = dialog.showAndWait();
+    result.ifPresent(category -> listBooksByCategoryDialog(category));
+}
+
+
+protected void showCategoryBookDialog() {
+    Dialog<Book> dialog = new Dialog<>();
+    dialog.setTitle("Book Cayegory");
+    dialog.setHeaderText("Enter ISBN of the book:");
+
+    ButtonType searchButton = new ButtonType("Search", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(searchButton, ButtonType.CANCEL);
+
+    TextField isbnField = new TextField();
+    isbnField.setPromptText("ISBN");
+
+    // Enable/Disable remove button depending on whether the ISBN field is filled.
+    Node searchButtonNode = dialog.getDialogPane().lookupButton(searchButton);
+    searchButtonNode.setDisable(true);
+
+    isbnField.textProperty().addListener((observable, oldValue, newValue) -> {
+        searchButtonNode.setDisable(newValue.trim().isEmpty());
+    });
+
+    GridPane grid = new GridPane();
+    grid.setVgap(15);
+    grid.setHgap(5);
+    grid.add(new Label("ISBN:"), 0, 0);
+    grid.add(isbnField, 1, 0);
+
+    dialog.getDialogPane().setContent(grid);
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == searchButton) {
+            String isbn = isbnField.getText();
+            Book book=Book.findBookByISBN(isbn);//from class book
+            if(book!=null) 
+              showAlert("Book with ISBN " + isbn + " belongs to category "+book.getCategory(), Alert.AlertType.INFORMATION);
+            else
+              showAlert("Book with ISBN " + isbn + " not found!", Alert.AlertType.WARNING);  
+        }
+        return null;
+    });
+
+    dialog.showAndWait();
+}
+
+
+
+
+    //Alert
+    private void showAlert(String message, Alert.AlertType alertType) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle("Message");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+}
