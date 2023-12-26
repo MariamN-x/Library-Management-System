@@ -381,7 +381,32 @@ combo1.setOnAction(e -> {
     categ_bookButton.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
     categ_bookButton.setOnAction(e -> dialog.showCategoryBookDialog());
    
+// supplier
+    // supplier with max order
+    Button maxSupplierOrderBtn=new Button("Max Supplier Order");
+    maxSupplierOrderBtn.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
+    Supplier max1=new Supplier();
+    max1=max1.maxOrderSupplier();
+    List<String>maxSupplierData=new ArrayList<>();
+    maxSupplierData.add("Supplier with maximum order Name: "+max1.getSname()+"\nSupplier ID "+max1.getId()+max1.displayOrdersDetails());
+    maxSupplierOrderBtn.setOnAction(e -> dialog.showListDialog(maxSupplierData));
     
+    // supplier with max revenue
+    Button maxSupplierRevenueBtn=new Button("Max Supplier Revenue");
+    maxSupplierRevenueBtn.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
+    Supplier max2=new Supplier();
+    max2=max2.maxRevenueSupplier();
+    List<String>maxSupplierData1=new ArrayList<>();
+    maxSupplierData1.add("Supplier with maximum revenue Name: "+max2.getSname()+"\nSupplier ID "+max2.getId()+max2.displayOrdersDetails());
+    maxSupplierRevenueBtn.setOnAction(e -> dialog.showListDialog(maxSupplierData1));
+    
+    // no. of orders per each supplier and their details
+    Button orderDetailsbtn=new Button("Suppliers & order details");
+    orderDetailsbtn.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
+    List<String>orderDetails=Supplier.displayAllOrdersDetails(Supplier.suppliersList);
+    orderDetailsbtn.setOnAction(e -> dialog.showListDialog(orderDetails));
+
+
     grid.add(imageView1, 0, 0);
     grid.add(imageView2, 1, 0);
     grid.add(imageView3, 2, 0);
@@ -403,6 +428,9 @@ combo1.setOnAction(e -> {
     grid.add(listLbl2, 3, 4);
     grid.add(Books_categButton,0,5);
     grid.add(categ_bookButton, 1, 5);
+    grid.add(maxSupplierOrderBtn,2,5);
+    grid.add(maxSupplierRevenueBtn,3,5);
+    grid.add(orderDetailsbtn,4,5);
     Scene newScene = new Scene(grid, 1000, 800);
     return newScene;
 }
@@ -489,22 +517,15 @@ private void showAlert(String message, Alert.AlertType alertType) {
     }
 public static void main(String[] args) {
     User.users = Files.readObjectsFromFile("users.bin");
-    
-    if (User.users == null) {
-        System.out.println("Failed to load user data from file.");
-        return;
-    }
-    List<User> users = Files.readObjectsFromFile("users.bin");
-    for (User user : users) {
-        System.out.println(user.getUserName()+"\t"+user.getPassword());
-    }
     Book.booksList = Files.readObjectsFromFile("book.bin");
-    for(Book book:Book.booksList)
+    Supplier.suppliersList=Files.readObjectsFromFile("suppliers.bin");
+    for(Supplier sup:Supplier.suppliersList)
     {
-        System.out.println(book.getTitle());
+        System.out.println(sup.getSname()+"  "+sup.getId()+" "+sup.getOrderlist()+sup.displayOrdersDetails());
     }
     launch(args);
     Files.writeObjectsToFile(User.users, "users.bin");
     Files.writeObjectsToFile(Book.booksList, "book.bin");
+    Files.writeObjectsToFile(Supplier.suppliersList,"suppliers.bin");
 }
 }
