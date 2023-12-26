@@ -2,16 +2,89 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
-
+import java.util.Calendar;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) 
     {
-      List<User> users = new ArrayList<>();      
-        User newUser = new Admin("mariam_nasr", "eee");
-        users.add(newUser);
-        Admin.writeUsersToFile(users,"users.bin"); 
+//      List<User> users = new ArrayList<>();      
+//        User newUser1 = new Admin("mariam_nasr", "eee");
+//        User newUser2 = new Librarian("fatma_nageh", "fff");
+//        User newUser3 = new Borrower("mariam_ashraf", "mmm");
+//        users.add(newUser1);
+//        users.add(newUser2);
+//        users.add(newUser3);
+//        Files.writeObjectsToFile(users,"users.bin"); 
+//        
+//        users = Files.readObjectsFromFile("users.bin");
+//        for(User use:users)
+//        {
+//            System.out.println(use.getUserName());
+//        }
+//       // book
+//        List<Book>books=new ArrayList<>();
+//        Book book=new Book("123456789","Read People Like a Book","partick king",10,50,Book.Category.SELF_HELP);
+//        Book book2=new Book("987654321","When Breath Becomes Air","Paul Kalanithi",30,70,Book.Category.MEDICAL);
+//        books.add(book);
+//        books.add(book2);
+//        Files.writeObjectsToFile(books, "book.bin");
+//        // borrowings
+//        Borrowing borrowing = new Borrowing();
+//        Date startDate = new Date(); // Assuming startDate is the current date
+//        Borrower borrower = new Borrower("mariam", "123");
+//
+//        ArrayList<Book> borrowedBooks = new ArrayList<>();
+//        borrowedBooks.add(new Book("123456789", "Read People Like a Book", "partick king", 10, 50, Book.Category.SELF_HELP));
+//
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.setTime(startDate);
+//        calendar.add(Calendar.WEEK_OF_YEAR, 2); // after 2 weeks of borrowing
+//        Date endDate = calendar.getTime();
+//
+//        borrowing.createBorrowing(startDate, endDate, borrower, borrowedBooks, 60);
+//        Borrowing.borrowingsList.add(borrowing);
+//        Borrowing.borrowingsList.remove(1);
+//        for(Borrowing bor:Borrowing.borrowingsList)
+//        {
+//            System.out.println(bor.getStartDate()+"\n"+bor.getEndDate());
+//        }
+//        Files.writeObjectsToFile(Borrowing.borrowingsList, "borrowings.bin");
+        
+        List<Book>booksForOrder1=new ArrayList<>();
+        Book book=new Book("123456789","Read People Like a Book","partick king",10,50,Book.Category.SELF_HELP);
+        Book book2=new Book("987654321","When Breath Becomes Air","Paul Kalanithi",30,70,Book.Category.MEDICAL);
+        booksForOrder1.add(book);
+        booksForOrder1.add(book2);
+
+        List<Book>booksForOrder2=new ArrayList<>();
+        booksForOrder2.add(book2);
+
+    // Create some suppliers
+    Supplier supplier1 = new Supplier("Supplier1", 1);
+    Supplier supplier2 = new Supplier("Supplier2", 2);
+
+    // Place orders for the suppliers
+    supplier1.placeOrder(booksForOrder1);
+    supplier2.placeOrder(booksForOrder2);
+
+    // Add suppliers to the list
+    Supplier.suppliersList.add(supplier1);
+    Supplier.suppliersList.add(supplier2);
+
+    // Print supplier details
+    for (Supplier supplier : Supplier.suppliersList) {
+        System.out.println("Supplier: " + supplier.getSname() + " - ID: " + supplier.getId());
+        System.out.println("Orders details for Supplier: " + supplier.getSname());
+        System.out.println(supplier.displayOrdersDetails());
+    }
+    Files.writeObjectsToFile(Supplier.suppliersList, "suppliers.bin");
+        
+       // Supplier.suppliersList=Files.readObjectsFromFile("suppliers.bin");
+
+
     }    
 }
