@@ -92,11 +92,11 @@ public class Order implements Serializable {
         }
     }
 
-    public double calculatePrice() {
-        double total = 0.0;
-        for (Book book : booklist) {
-            total += book.getPrice();
-        }
-        return total;
+     public double calculatePrice() {
+    double total = 0.0;
+    for (Book book : booklist) {
+        total += book.getPrice() * book.getQuantity();
     }
+    return total;
+}
 }
