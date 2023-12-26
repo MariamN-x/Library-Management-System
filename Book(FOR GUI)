@@ -21,7 +21,7 @@ public class Book implements Serializable {
     private double rate; // Note: don't forget it :(
     private boolean availability;
 
-    // Use camelCase for variable names (e.g., booksList instead of books)
+    
     public static List<Book> booksList = new ArrayList<>();
     private static HashMap<Category, List<Book>> listByCategory = new HashMap<>();
     private static ArrayList<Book> reservedBooks = new ArrayList<>();
@@ -47,6 +47,7 @@ public class Book implements Serializable {
         this.price = price;
         this.category = category;
         setListByCategory(category);
+        booksList.add(this);    // book added automatically after creation to be use with supplier
     }
 
     public String getISBN() {
@@ -146,7 +147,7 @@ public class Book implements Serializable {
         Book.returnBooks = returnBooks;
     }
     
-     
+   
     
     //list books
     public List<String> ListbyTitle()
