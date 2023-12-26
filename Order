@@ -1,30 +1,85 @@
-
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
-public class Order {
-    private int ordernum;
-    private ArrayList<Book> booklist;
-    private double price;
-    private int totalAmountOfOrders;
+public class Order implements Serializable {
+    public static final long serialVersionUID = -4893757831676801882L;
 
-    public Order(int ordernum, ArrayList<Book> booklist, double price) {
-        this.ordernum = ordernum;
-        this.booklist = booklist;
-        this.price = price;
+    public static List<Order> ordersList = new ArrayList<>();
+
+    private int orderNum;
+    private String supplierName;
+    private List<Book> booklist;
+    private double totalPrice;
+    private int totalAmountOfOrders; // no. of books in the order
+
+    public Order(String supplierName, List<Book> booklist) {
+        this.supplierName = supplierName;
+        this.orderNum = getNextOrderNum();
+        this.booklist = new ArrayList<>(booklist);
+        this.totalPrice = calculatePrice();
         this.totalAmountOfOrders = booklist.size();
+        ordersList.add(this); 
     }
 
-    public void addOrder(Book book) {
-        booklist.add(book);
-        totalAmountOfOrders++;
-        price += book.getPrice();
+    private int getNextOrderNum() {
+        if (ordersList.isEmpty()) {
+            return 1; // If the list is empty, start with order number 1
+        } else {
+            Order lastOrder = ordersList.get(ordersList.size() - 1);
+            return lastOrder.getOrderNum() + 1;
+        }
+    }
+
+    public int getOrderNum() {
+        return orderNum;
+    }
+
+    public String getsupplierName() {
+        return supplierName;
+    }
+
+    public void setsupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public List<Book> getBooklist() {
+        return booklist;
+    }
+
+    public void setBooklist(List<Book> booklist) {
+        this.booklist = booklist;
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public int getTotalAmountOfOrders() {
+        return totalAmountOfOrders;
+    }
+
+    public void setTotalAmountOfOrders(int totalAmountOfOrders) {
+        this.totalAmountOfOrders = totalAmountOfOrders;
+    }
+
+    public void addToOrder(List<Book> books) {
+        for (Book book : books) {
+            booklist.add(book);
+            totalPrice += book.getPrice();
+            totalAmountOfOrders++;
+        }
     }
 
     public void editOrder(int orderIndex, Book newBook) {
         if (orderIndex >= 0 && orderIndex < booklist.size()) {
             Book oldBook = booklist.get(orderIndex);
-            price -= oldBook.getPrice();
-            price += newBook.getPrice();
+            totalPrice -= oldBook.getPrice();
+            totalPrice += newBook.getPrice();
             booklist.set(orderIndex, newBook);
         }
     }
@@ -33,32 +88,15 @@ public class Order {
         if (orderIndex >= 0 && orderIndex < booklist.size()) {
             Book canceledBook = booklist.remove(orderIndex);
             totalAmountOfOrders--;
-            price -= canceledBook.getPrice();
+            totalPrice -= canceledBook.getPrice();
         }
     }
 
-    public void listAllOrders() {
-        System.out.println("Order Number: " + ordernum);
-        System.out.println("Total Amount of Orders: " + totalAmountOfOrders);
-        System.out.println("Price: $" + price);
-        System.out.println("Books in Order:");
-        for (int i = 0; i < booklist.size(); i++) {
-            Book book = booklist.get(i);
-            System.out.println("Book " + (i + 1));
-            System.out.println("Title: " + book.getTitle());
-            System.out.println("Author: " + book.getAuthor());
-            System.out.println("Price: $" + book.getPrice());
-            System.out.println("---------------------------");
-        }
-    }
-
-  
     public double calculatePrice() {
-        double totalPrice = 0.0;
+        double total = 0.0;
         for (Book book : booklist) {
-            totalPrice += book.getPrice();
+            total += book.getPrice();
         }
-        return totalPrice;
+        return total;
     }
-   
 }
