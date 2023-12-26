@@ -1,27 +1,32 @@
 
-package javaapplication66;
-
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
-  
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+/**
+ *
+ * @author Dell
+ */
+public class Supplier implements Serializable {
+    private static final long serialVersionUID = 2794085879252401738L;
     
-   
-public class Supplier {
+    public static List<Supplier>suppliersList=new ArrayList<>();
     private String sname; 
     private int id ;
-    private ArrayList<Order> orderlist;
-
+    private List<Order>ordersList;
     
-    
-    public Supplier(String sname, int id, ArrayList<Order> orderlist) {
+     public Supplier(){}
+    public Supplier(String sname, int id) {
         this.sname = sname;
         this.id = id;
-        this.orderlist = orderlist;
+        ordersList = new ArrayList<>();
     }
 
-    
-    
-    
     public String getSname() {
         return sname;
     }
@@ -38,32 +43,55 @@ public class Supplier {
         this.id = id;
     }
 
-    public ArrayList<Order> getOrderlist() {
-        return orderlist;
+    public List<Order> getOrderlist() {
+        return ordersList;
     }
 
-    public void setOrderlist(ArrayList<Order> orderlist) {
-        this.orderlist = orderlist;
-    }
-    
-    
-    
-    public int numberOfOrders() {
-        return orderlist.size();
+    public void setOrdersList(List<Order> ordersList) {
+        this.ordersList = ordersList;
     }
 
-    public double totalRevenue() {
+    
+public int numberOfOrders() {
+        return ordersList.size();
+    }
+
+
+public void placeOrder(List<Book> books) {
+        Order newOrder = new Order(sname, books);
+        this.ordersList.add(newOrder);
+        // add books to the library & update quantity
+        for (Book book : books) { 
+            Book oldBook=Book.findBookByISBN(book.getISBN());
+            if(oldBook!=null) //book found in the library
+            {
+                int currentQuantity=book.getQuantity();
+                int oldQuantity=oldBook.getQuantity();
+                if(currentQuantity>0)
+                {
+                    oldBook.setQuantity(oldQuantity+currentQuantity);
+                }
+                book.setQuantity(0);//all the books in the order have been accounted for in the library
+            }
+            else{ //book not found in the library ->add it
+            Book.booksList.add(book);
+            book.setQuantity(0);//all the books in the order have been accounted for in the library
+            }
+        }
+} 
+
+public double totalRevenue() {
         double revenue = 0.0;
-        for (Order order : orderlist) {
+        for (Order order : ordersList) {
             revenue += order.calculatePrice();
         }
         return revenue;
     }
 
-    public Supplier maxOrderSupplier(ArrayList<Supplier> suppliers) {
+public Supplier maxOrderSupplier() {
         Supplier maxOrderSupplier = null;
         int maxOrders = 0;
-        for (Supplier supplier : suppliers) {
+        for (Supplier supplier : suppliersList) {
             int orders = supplier.numberOfOrders();
             if (orders > maxOrders) {
                 maxOrders = orders;
@@ -71,14 +99,12 @@ public class Supplier {
             }
         }
         return maxOrderSupplier;
-    }
-
+}
     
-     
-    public Supplier minOrderSupplier(ArrayList<Supplier> suppliers) {
+public Supplier minOrderSupplier() {
     Supplier minOrderSupplier = null;
     int minOrders = Integer.MAX_VALUE;
-    for (Supplier supplier : suppliers) {
+    for (Supplier supplier : suppliersList) {
         int orders = supplier.numberOfOrders();
         if (orders < minOrders) {
             minOrders = orders;
@@ -88,14 +114,10 @@ public class Supplier {
     return minOrderSupplier;
 }
 
-    
-    
-    
-    
-    public Supplier maxRevenueSupplier(ArrayList<Supplier> suppliers) {
+public Supplier maxRevenueSupplier() {
         Supplier maxRevenueSupplier = null;
         double maxRevenue = 0.0;
-        for (Supplier supplier : suppliers) {
+        for (Supplier supplier : suppliersList) {
             double revenue = supplier.totalRevenue();
             if (revenue > maxRevenue) {
                 maxRevenue = revenue;
@@ -103,14 +125,12 @@ public class Supplier {
             }
         }
         return maxRevenueSupplier;
-    }
-    
-    
-   
-public Supplier minRevenueSupplier(ArrayList<Supplier> suppliers) {
+}
+      
+public Supplier minRevenueSupplier() {
     Supplier minRevenueSupplier = null;
     double minRevenue = Double.MAX_VALUE;
-    for (Supplier supplier : suppliers) {
+    for (Supplier supplier : suppliersList) {
         double revenue = supplier.totalRevenue();
         if (revenue < minRevenue) {
             minRevenue = revenue;
@@ -119,6 +139,36 @@ public Supplier minRevenueSupplier(ArrayList<Supplier> suppliers) {
     }
     return minRevenueSupplier;
 }
-    
-  
+public List<String> displayOrdersDetails() {
+        List<String> detailsList = new ArrayList<>();
+        detailsList.add("Orders details for Supplier: " + sname);
+        for (Order order : ordersList) {
+            detailsList.add("Order Number: " + order.getOrderNum());
+            detailsList.add("User: " + order.getsupplierName());
+            detailsList.add("Total Amount of Orders: " + order.getTotalAmountOfOrders());
+            detailsList.add("Total Price of the order: $" + order.getTotalPrice());
+
+            detailsList.add("Books in Order:");
+            List<Book> books = order.getBooklist();
+            for (int i = 0; i < books.size(); i++) {
+                Book book = books.get(i);
+                detailsList.add("Book " + (i + 1));
+                detailsList.add("Title: " + book.getTitle());
+                detailsList.add("Author: " + book.getAuthorName());
+                detailsList.add("Price: $" + book.getPrice());
+                detailsList.add("\n");
+            }
+        }
+
+        return detailsList;
+}
+
+public static List<String> displayAllOrdersDetails(List<Supplier> suppliers) {
+        List<String> allDetailsList = new ArrayList<>();
+        for (Supplier supplier : suppliers) {
+            List<String> supplierDetails = supplier.displayOrdersDetails();
+            allDetailsList.addAll(supplierDetails);
+        }
+        return allDetailsList;
+    }
 }
