@@ -1,0 +1,55 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+/**
+ *
+ * @author Dell
+ */
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Files implements Serializable{
+    public static <T> List<T> readObjectsFromFile(String fileName) {
+        try (FileInputStream input = new FileInputStream(fileName)) {
+            ObjectInputStream in = new ObjectInputStream(input);
+            List<T> objects = new ArrayList<>();
+            boolean done = false;
+            while (!done) {
+                try {
+                    T object = (T) in.readObject();
+                    objects.add(object);
+                } catch (EOFException e) {
+                    done = true;
+                    input.close();
+                } catch (ClassNotFoundException e) {
+                    System.out.println("Unknown object type: " + e.getMessage());
+                } 
+                catch (IOException e) {
+                    System.out.println("Error reading object: " + e.getMessage());
+                    break;
+                }
+            }
+            return objects;
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public static <T> void writeObjectsToFile(List<T> objects, String fileName) {
+        try (FileOutputStream output = new FileOutputStream(fileName)) {
+            ObjectOutputStream out = new ObjectOutputStream(output);
+            for (T object : objects) {
+                out.writeObject(object);
+            }
+            out.close();
+            System.out.println("Wrote " + objects.size() +" objects to file.");
+        } catch (IOException e) {
+            System.out.println("Error writing file: " + e.getMessage());
+        }
+    }
+}
+
