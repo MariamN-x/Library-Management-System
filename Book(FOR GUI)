@@ -1,9 +1,3 @@
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +14,7 @@ public class Book implements Serializable {
     private Category category;
     private double rate; // Note: don't forget it :(
     private boolean availability;
+    private String imagePath;
 
     
     public static List<Book> booksList = new ArrayList<>();
@@ -39,13 +34,14 @@ public class Book implements Serializable {
     public Book() {
     }
 
-    public Book(String ISBN, String title, String authorName, int quantity, double price, Category category) {
+    public Book(String ISBN, String title, String authorName, int quantity, double price, Category category,String imagePath) {
         this.ISBN = ISBN;
         this.title = title;
         this.authorName = authorName;
         this.quantity = quantity;
         this.price = price;
         this.category = category;
+        this.imagePath=imagePath;
         setListByCategory(category);
         booksList.add(this);    // book added automatically after creation to be use with supplier
     }
@@ -113,6 +109,14 @@ public class Book implements Serializable {
     public void setAvailability(boolean availability) {
         this.availability = availability;
     }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
     
     public void setListByCategory(Category category) {
         if (listByCategory.containsKey(category)) {
@@ -147,7 +151,15 @@ public class Book implements Serializable {
         Book.returnBooks = returnBooks;
     }
     
-   
+    // add , edit , remove , list
+    public static Book findBookByISBN(String isbn) {
+        for (Book book : booksList) {
+            if (book.getISBN().equals(isbn)) {
+                return book;
+            }
+        }
+        return null; // Book not found
+    }
     
     //list books
     public List<String> ListbyTitle()
@@ -198,6 +210,15 @@ public class Book implements Serializable {
         }
         return categories;
     }
+    
+    //    public List<String> Listbyimages()
+//    {
+//        List<String> images = new ArrayList<>();
+//        for(Book book:booksList){
+//            images.add(book.imagePath);
+//        }
+//        return images;
+//    }
      public List<String> ListAll()
     {
         List<String> all = new ArrayList<>();
@@ -208,16 +229,7 @@ public class Book implements Serializable {
         return all;
     }
 
-    // add , edit , remove , list
-    public static Book findBookByISBN(String isbn) {
-        for (Book book : booksList) {
-            if (book.getISBN().equals(isbn)) {
-                return book;
-            }
-        }
-        return null; // Book not found
-    }
-        
+  
     public static ArrayList<Book> selectCategory(Category category) {
     ArrayList<Book> selectedBooks = new ArrayList<>();
     for (Book book : booksList) {
@@ -243,4 +255,42 @@ public class Book implements Serializable {
 //        borrowCount.put(isbn, count + 1);
 //    }
     
+
+    public void AddBook(String isbn, String title, String authorName, int quantity, double price, Category category,String imagePath) {
+        Book book = new Book(isbn, title, authorName, quantity, price, category, imagePath);
+        Book.booksList.add(book);
+    }
+
+    public boolean editBook(String isbn, String title, String author, int quantity, double price, Category category) {
+        Book book=Book.findBookByISBN(isbn);
+            if (book!=null) {
+                book.setTitle(title);
+                book.setAuthorName(author);
+                book.setQuantity(quantity);
+                book.setPrice(price);
+                book.setCategory(category);
+                return true;
+            }
+            else
+                return false;
+    }  
+    public boolean removeBook(String isbn)
+    {
+        Book book=Book.findBookByISBN(isbn);
+        if(book!=null){
+            Book.booksList.remove(book);
+            return true;
+        }
+        else
+            return false;       
+    }
+      public boolean isUniqueISBN(String isbn) {
+        for (Book book : Book.booksList) {
+            if (book.getISBN().equals(isbn)) {
+                return false;
+            }
+        }
+        return true; 
+}   
+
 }
