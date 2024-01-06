@@ -7,6 +7,7 @@
 
 
 import java.io.Serializable;
+import java.util.List;
 
 
 public class Admin extends User implements Serializable {
@@ -17,6 +18,7 @@ public class Admin extends User implements Serializable {
     public Admin(String username,String pass){
         super.setUserName(username);
         super.setPassword (pass);
+        super.setUserType(User.UserType.ADMIN);
       }
 
     @Override
@@ -38,113 +40,19 @@ public class Admin extends User implements Serializable {
     public void setPassword(String password) {
         super.setPassword(password);
     }
-    public void AddAdmin() {
-       
-    }
-
-//    public static void addBorrower(Borrower borrower) {
-//       borrower.SignUp();
-//    }    
-//    public static void addLibrarian(Librarian librarian) { 
-//        librarian.SignUp();
-//    }
-    
-//    public static void removeAdmin() {
-//    Scanner scanner = new Scanner(System.in);
-//    System.out.println("Enter the username of the admin to remove: ");
-//    String usernameToRemove = scanner.nextLine();
-//
-//    for (User admin : admins) {
-//        if (admin.getUserName().equals(usernameToRemove)) {
-//            admins.remove(admin);
-//            System.out.println("Admin removed successfully!");
-//            return;
-//        }
-//    }
-//
-//    System.out.println("Admin not found.");
-//}
-//
-//public static void editAdmin(Admin ad) {
-//    Scanner scanner = new Scanner(System.in);
-//    System.out.println("Enter the username of the admin to edit: ");
-//    String usernameToEdit = scanner.nextLine();
-//
-//    for (User admin : ad.admins) {
-//        if (admin.getUserName().equals(usernameToEdit)) {
-//            System.out.println("Enter the new username: ");
-//            String newUsername = scanner.nextLine();
-//            admin.setUserName(newUsername);
-//
-//            System.out.println("Enter the new password: ");
-//            String newPassword = scanner.nextLine();
-//            admin.setPassword(newPassword);
-//
-//            System.out.println("Admin edited successfully!");
-//            return; 
-//        }
-//    }
-//
-//    System.out.println("Admin not found...");
-//}
-   
-//     System.out.println("----------------------------------------------");
-//
-//        Scanner input = new Scanner(System.in);
-//        System.out.println("Enter old Username: ");
-//        String oldUsername = input.next();
-//        System.out.println("Enter old Password: ");
-//        String oldpassword = input.next();
-//        System.out.println("Enter new Username: ");
-//        String newUserName = input.next();
-//        System.out.println("Enter new password: ");
-//        String newPassword = input.next();
-//
-//        int index = -1;
-//        
-//        for (User adminObj:admins) {
-//    if (adminObj.getUserName().equals(oldUsername) && adminObj.getPassword().equals(oldpassword)) {
-//        index = admins.indexOf(adminObj);
-//        break;
-//    }
-//}
-//        if (index != -1) {
-//            User user = admins.get(index);
-//            user.setUserName(newUserName);
-//            user.setPassword(newPassword);
-//            System.out.println("User " + oldUsername + " has been edited.");
-//
-//        } else {
-//            System.out.println("User " + oldUsername + " was not found.");
-//        }
-//
-//    }
-}
-
-
-
-
-
-
-    
-
+    public void AddAdmin(List<User> users,String username,String password) {
+        User ad=new Admin(username,password);
+        users.add(ad);
  
+    }
+    public void AddLibrarian(List<User> users,String username,String password) {
+        User lib=new Librarian(username,password);
+        users.add(lib);
+ 
+    }
+    public void AddBorrower(List<User> users,String username,String password) {
+        User bor=new Admin(username,password);
+        users.add(bor);
+    }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-
+}
