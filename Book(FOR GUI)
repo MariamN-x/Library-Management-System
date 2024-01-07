@@ -292,5 +292,10 @@ public class Book implements Serializable {
         }
         return true; 
 }   
+      @Override
+      public String toString()
+      {
+          return "Book title: "+getTitle()+"\t Author: "+getAuthorName()+"\t Price: "+getPrice();
+      }
 
 }
