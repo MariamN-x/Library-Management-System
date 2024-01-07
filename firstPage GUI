@@ -399,7 +399,7 @@ private Scene AdminScene() {
     //make order
     Button makeOrderBtn=new Button("Make Order");
     makeOrderBtn=style(makeOrderBtn);
-    makeOrderBtn.setOnAction(e->dialog.showOrderDialog());
+    makeOrderBtn.setOnAction(e->dialog.showOrderDialog(Supplier.suppliersList));
     
     // no. of orders per each supplier and their details
     Button orderDetailsbtn=new Button("Suppliers & order details");
@@ -560,14 +560,12 @@ public Label styleLabel(Label lbl)//for size 22 only
 public static void main(String[] args) {
     User.users = Files.readObjectsFromFile("users.bin");
     Book.booksList = Files.readObjectsFromFile("book.bin");
+    Order.ordersList=Files.readObjectsFromFile("orders.bin");
     Supplier.suppliersList=Files.readObjectsFromFile("suppliers.bin");
-//    for(Supplier sup:Supplier.suppliersList)
-//    {
-//        System.out.println(sup.getSname()+"  "+sup.getId()+" "+sup.getOrderlist()+sup.displayOrdersDetails());
-//    }
     launch(args);
     Files.writeObjectsToFile(User.users, "users.bin");
     Files.writeObjectsToFile(Book.booksList, "book.bin");
+    Files.writeObjectsToFile(Order.ordersList, "orders.bin");
     Files.writeObjectsToFile(Supplier.suppliersList,"suppliers.bin");
 }
 }
