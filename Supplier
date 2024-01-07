@@ -3,27 +3,20 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
-/**
- *
- * @author Dell
- */
 public class Supplier implements Serializable {
     private static final long serialVersionUID = 2794085879252401738L;
     
     public static List<Supplier>suppliersList=new ArrayList<>();
     private String sname; 
-    private int id ;
+    private String id ;
+    private double revenue;
     private List<Order>ordersList;
     
      public Supplier(){}
-    public Supplier(String sname, int id) {
+    public Supplier(String sname, String id) {
         this.sname = sname;
         this.id = id;
+        this.revenue=0.0;
         ordersList = new ArrayList<>();
     }
 
@@ -35,12 +28,20 @@ public class Supplier implements Serializable {
         this.sname = sname;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    public double getRevenue() {
+        return revenue;
+    }
+
+    public void setRevenue(double revenue) {
+        this.revenue = revenue;
     }
 
     public List<Order> getOrderlist() {
@@ -55,97 +56,78 @@ public class Supplier implements Serializable {
 public int numberOfOrders() {
         return ordersList.size();
     }
-
+@Override
+public String toString()
+{
+    return"Supplier name: "+getSname()+", supplier id: "+getId();
+}
 
 public void placeOrder(List<Book> books) {
-        Order newOrder = new Order(sname, books);
+        Order newOrder = new Order(this, books);
         this.ordersList.add(newOrder);
-        // add books to the library & update quantity
-        for (Book book : books) { 
-            Book oldBook=Book.findBookByISBN(book.getISBN());
-            if(oldBook!=null) //book found in the library
-            {
-                int currentQuantity=book.getQuantity();
-                int oldQuantity=oldBook.getQuantity();
-                if(currentQuantity>0)
-                {
-                    oldBook.setQuantity(oldQuantity+currentQuantity);
-                }
-                book.setQuantity(0);//all the books in the order have been accounted for in the library
-            }
-            else{ //book not found in the library ->add it
-            Book.booksList.add(book);
-            book.setQuantity(0);//all the books in the order have been accounted for in the library
+        // add books to the library & update quantity (if already exists)
+        for (Book book : books) {
+            Book existingBook = Book.findBookByISBN(book.getISBN());
+            if (existingBook != null) {
+                int currentQuantity = existingBook.getQuantity();
+                int updatedQuantity = currentQuantity + book.getQuantity();
+                existingBook.setQuantity(updatedQuantity);
+            } else {
+                Book.booksList.add(book);
             }
         }
-} 
+        
+}
 
 public double totalRevenue() {
-        double revenue = 0.0;
+        double totalRevenue = 0.0;
         for (Order order : ordersList) {
-            revenue += order.calculatePrice();
+            totalRevenue += order.getTotalPrice();
         }
-        return revenue;
+        return totalRevenue;
     }
 
-public Supplier maxOrderSupplier() {
-        Supplier maxOrderSupplier = null;
+public static List<Supplier> maxOrderSupplier() {
+        List<Supplier> maxOrderSuppliers = new ArrayList<>();
         int maxOrders = 0;
+
         for (Supplier supplier : suppliersList) {
-            int orders = supplier.numberOfOrders();
-            if (orders > maxOrders) {
-                maxOrders = orders;
-                maxOrderSupplier = supplier;
+            int supplierOrders = supplier.numberOfOrders();
+            
+            if (supplierOrders > maxOrders) {
+                maxOrders = supplierOrders;
+                maxOrderSuppliers.clear(); // Clear previous max suppliers
+                maxOrderSuppliers.add(supplier);
+            } else if (supplierOrders == maxOrders) {
+                maxOrderSuppliers.add(supplier); // Add another supplier with the same orders
             }
         }
-        return maxOrderSupplier;
-}
-    
-public Supplier minOrderSupplier() {
-    Supplier minOrderSupplier = null;
-    int minOrders = Integer.MAX_VALUE;
-    for (Supplier supplier : suppliersList) {
-        int orders = supplier.numberOfOrders();
-        if (orders < minOrders) {
-            minOrders = orders;
-            minOrderSupplier = supplier;
-        }
-    }
-    return minOrderSupplier;
-}
 
-public Supplier maxRevenueSupplier() {
-        Supplier maxRevenueSupplier = null;
+        return maxOrderSuppliers;
+}
+public static List<Supplier> maxRevenueSupplier() {
+        List<Supplier> maxRevenueSuppliers = new ArrayList<>();
         double maxRevenue = 0.0;
         for (Supplier supplier : suppliersList) {
-            double revenue = supplier.totalRevenue();
-            if (revenue > maxRevenue) {
-                maxRevenue = revenue;
-                maxRevenueSupplier = supplier;
+            double supplierRevenue = supplier.totalRevenue();
+            
+            if (supplierRevenue > maxRevenue) {
+                maxRevenue = supplierRevenue;
+                maxRevenueSuppliers.clear();
+                maxRevenueSuppliers.add(supplier);
+            } else if (supplierRevenue == maxRevenue) {
+                maxRevenueSuppliers.add(supplier);
             }
         }
-        return maxRevenueSupplier;
-}
-      
-public Supplier minRevenueSupplier() {
-    Supplier minRevenueSupplier = null;
-    double minRevenue = Double.MAX_VALUE;
-    for (Supplier supplier : suppliersList) {
-        double revenue = supplier.totalRevenue();
-        if (revenue < minRevenue) {
-            minRevenue = revenue;
-            minRevenueSupplier = supplier;
-        }
+
+        return maxRevenueSuppliers;
     }
-    return minRevenueSupplier;
-}
-public List<String> displayOrdersDetails() {
+public List<String> displayOrderDetails() {
         List<String> detailsList = new ArrayList<>();
-        detailsList.add("Orders details for Supplier: " + sname);
+        detailsList.add("Orders details for Supplier: " + this.sname);
         for (Order order : ordersList) {
             detailsList.add("Order Number: " + order.getOrderNum());
-            detailsList.add("User: " + order.getsupplierName());
-            detailsList.add("Total Amount of Orders: " + order.getTotalAmountOfOrders());
+            detailsList.add("Total Amount of Orders: " + order.getTotalAmountInOrder());
             detailsList.add("Total Price of the order: $" + order.getTotalPrice());
 
             detailsList.add("Books in Order:");
@@ -166,7 +148,7 @@ public List<String> displayOrdersDetails() {
 public static List<String> displayAllOrdersDetails(List<Supplier> suppliers) {
         List<String> allDetailsList = new ArrayList<>();
         for (Supplier supplier : suppliers) {
-            List<String> supplierDetails = supplier.displayOrdersDetails();
+            List<String> supplierDetails = supplier.displayOrderDetails();
             allDetailsList.addAll(supplierDetails);
         }
         return allDetailsList;
