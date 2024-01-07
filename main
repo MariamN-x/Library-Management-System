@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import javafx.scene.image.Image;
 
 public class Main {
     public static void main(String[] args) 
@@ -24,14 +25,19 @@ public class Main {
 //        for(User use:users)
 //        {
 //            System.out.println(use.getUserName());
-//        }
-//       // book
-//        List<Book>books=new ArrayList<>();
-//        Book book=new Book("123456789","Read People Like a Book","partick king",10,50,Book.Category.SELF_HELP);
-//        Book book2=new Book("987654321","When Breath Becomes Air","Paul Kalanithi",30,70,Book.Category.MEDICAL);
-//        books.add(book);
-//        books.add(book2);
-//        Files.writeObjectsToFile(books, "book.bin");
+        
+       // book
+//        List<Book>books=Book.booksList;
+//        Book book1=new Book("123456789","Read People Like a Book","partick king",10,50,
+//                Book.Category.SELF_HELP,"file:Read-People-Like-a-Book.jpg");
+//        Book book2=new Book("987654321","When Breath Becomes Air","Paul Kalanithi",30,70,Book.Category.MEDICAL
+//                ,"file:When-Breath-Becomes-Air.jpg");
+//        Book book3=new Book("1122334455","The Great Gatsby","F.Scott Fitzgerald",20,80,Book.Category.FICTION
+//                ,"file:The-Great-Gatsby.jpg");
+//        Book.booksList.add(book1);
+//        Book.booksList.add(book2);
+//        Book.booksList.add(book3);
+//        Files.writeObjectsToFile(books, "book.bin");                
 //        // borrowings
 //        Borrowing borrowing = new Borrowing();
 //        Date startDate = new Date(); // Assuming startDate is the current date
@@ -54,37 +60,98 @@ public class Main {
 //        }
 //        Files.writeObjectsToFile(Borrowing.borrowingsList, "borrowings.bin");
         
-        List<Book>booksForOrder1=new ArrayList<>();
-        Book book=new Book("123456789","Read People Like a Book","partick king",10,50,Book.Category.SELF_HELP);
-        Book book2=new Book("987654321","When Breath Becomes Air","Paul Kalanithi",30,70,Book.Category.MEDICAL);
-        booksForOrder1.add(book);
-        booksForOrder1.add(book2);
+      //test supplier  
+//    List<Book>booksForOrder=Files.readObjectsFromFile("book.bin");  
+//    List<Book>order1=new ArrayList<>();
+//    order1.add(booksForOrder.get(0));
+//    order1.add(booksForOrder.get(1));
+//    
+//    List<Book>order2=new ArrayList<>();
+//    order2.add(booksForOrder.get(2));
+//    order2.add(booksForOrder.get(3));
+//    // Create some suppliers
+//    Supplier supplier1 = new Supplier("Supplier1", "01");
+//    Supplier supplier2 = new Supplier("Supplier2", "02");
+//
+//    // Place orders for the suppliers
+//    supplier1.placeOrder(order1);
+//    supplier2.placeOrder(order2);
+//
+//    // Add suppliers to the list
+//    Supplier.suppliersList.add(supplier1);
+//    Supplier.suppliersList.add(supplier2);
+//
+//    // Print supplier details
+//    for (Supplier supplier : Supplier.suppliersList) {
+//        System.out.println("Supplier: " + supplier.getSname() + " - ID: " + supplier.getId());
+//        System.out.println("Orders details for Supplier: " + supplier.getSname());
+//        System.out.println(supplier.displayOrderDetails());
+//        System.out.println("revenue  "+supplier.totalRevenue());
+//    }
+//    for(Book book:Book.booksList){
+//        System.out.println("quantity of each book: "+book.getQuantity());
+//    }
+//     System.out.println("Supplier with max revenue: "+Supplier.maxRevenueSupplier());
+//     System.out.println("Supplier with max order: "+Supplier.maxOrderSupplier());
+//      Files.writeObjectsToFile(Supplier.suppliersList, "suppliers.bin");
+//        
+//    Supplier.suppliersList=Files.readObjectsFromFile("suppliers.bin");
 
-        List<Book>booksForOrder2=new ArrayList<>();
-        booksForOrder2.add(book2);
+    //test all methods order class    
+//        Order.ordersList=Files.readObjectsFromFile("orders.bin");
+//        List<Book> books = Files.readObjectsFromFile("book.bin");
+//
+//        Supplier supplier = new Supplier("Supplier1", "01");
+//
+//        Order order = new Order(supplier, books);
+//        supplier.placeOrder(books);
+//        // Display order information
+//        System.out.println("Order Number: " + order.getOrderNum());
+//        System.out.println("Total Price: " + order.getTotalPrice());
+//        System.out.println("Total Amount in Order: " + order.getTotalAmountInOrder());
 
-    // Create some suppliers
-    Supplier supplier1 = new Supplier("Supplier1", 1);
-    Supplier supplier2 = new Supplier("Supplier2", 2);
+//        // Add more books to the order
+//        List<Book> additionalBooks = new ArrayList<>();
+//        additionalBooks.add(books.get(2));
+//        additionalBooks.add(books.get(3));
+//        order.addToOrder(additionalBooks);
 
-    // Place orders for the suppliers
-    supplier1.placeOrder(booksForOrder1);
-    supplier2.placeOrder(booksForOrder2);
-
-    // Add suppliers to the list
-    Supplier.suppliersList.add(supplier1);
-    Supplier.suppliersList.add(supplier2);
-
-    // Print supplier details
-    for (Supplier supplier : Supplier.suppliersList) {
-        System.out.println("Supplier: " + supplier.getSname() + " - ID: " + supplier.getId());
-        System.out.println("Orders details for Supplier: " + supplier.getSname());
-        System.out.println(supplier.displayOrdersDetails());
-    }
-    Files.writeObjectsToFile(Supplier.suppliersList, "suppliers.bin");
+//        System.out.println("\nUpdated Order Information:");
+//        System.out.println("Order Number: " + order.getOrderNum());
+//        System.out.println("Total Price: " + order.getTotalPrice());
+//        System.out.println("Total Amount in Order: " + order.getTotalAmountInOrder());
+//
+//        int indexToEdit = 0;
+//        Book newBook =books.get(1);
+//        order.editOrder(indexToEdit, newBook);
+//
+//        System.out.println("\nUpdated Order Information after Editing:");
+//        System.out.println("Order Number: " + order.getOrderNum());
+//        System.out.println("Total Price: " + order.getTotalPrice());
+//        System.out.println("Total Amount in Order: " + order.getTotalAmountInOrder());
+//
+//        // Cancel an order
+//        int indexToCancel = 0;
+//        order.cancelOrder(indexToCancel);
+//
+//        // Display final order information
+//        System.out.println("\nFinal Order Information after Cancellation:");
+//        System.out.println("Order Number: " + order.getOrderNum());
+//        System.out.println("Total Price: " + order.getTotalPrice());
+//        System.out.println("Total Amount in Order: " + order.getTotalAmountInOrder());
+//        Files.writeObjectsToFile(Order.ordersList, "orders.bin");
         
-       // Supplier.suppliersList=Files.readObjectsFromFile("suppliers.bin");
+    }   
+        
+        
+
+ }    
 
 
-    }    
-}
+   
+            
+            
+
+          
+  
+
