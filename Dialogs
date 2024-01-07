@@ -1,3 +1,12 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+/**
+ *
+ * @author Dell
+ */
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +38,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.StageStyle;
 import javafx.util.Pair;
@@ -429,138 +442,103 @@ protected void showCategoryBookDialog() {
     dialog.showAndWait();
 }
 
-// Declare the spinnerMap to store Spinners for each selected book
-private final Map<Book, Spinner<Integer>> spinnerMap = new HashMap<>();
-
-public void showOrderDialog() {
+// make order dialog
+public void showOrderDialog(List<Supplier> suppliers) {
     Dialog<Pair<Supplier, List<Book>>> orderDialog = new Dialog<>();
-    orderDialog.initModality(Modality.APPLICATION_MODAL);
     orderDialog.setTitle("Place Order");
-    orderDialog.setHeaderText("Choose books and quantity:");
 
-    List<Book> selectedBooks = new ArrayList<>();
-    VBox content = new VBox(10);
-    content.setPadding(new Insets(10));
-    content.setPrefSize(700, 500); 
+    final List<Book> booksList = Book.booksList;
+    GridPane gridPane = new GridPane();
+    gridPane.setAlignment(Pos.CENTER);
+    gridPane.setHgap(10);
+    gridPane.setVgap(10);
+    gridPane.setPadding(new Insets(25, 25, 25, 25));
 
+    // Create the supplier name field
+    Label supplierNameLabel = new Label("Supplier Name:");
     TextField supplierNameField = new TextField();
+    gridPane.add(supplierNameLabel, 0, 0);
+    gridPane.add(supplierNameField, 1, 0);
+
+    // Create the supplier ID field
+    Label supplierIdLabel = new Label("Supplier ID:");
     TextField supplierIdField = new TextField();
-    supplierNameField.setPromptText("Supplier Name");
-    supplierIdField.setPromptText("Supplier ID");
+    gridPane.add(supplierIdLabel, 0, 1);
+    gridPane.add(supplierIdField, 1, 1);
 
-    ListView<Book> bookListView = new ListView<>();
-    bookListView.getItems().addAll(Book.booksList);
-    bookListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-    // String representation for each book object
-   bookListView.setCellFactory(param -> new ListCell<Book>() {
-    @Override
-    protected void updateItem(Book book, boolean empty) {
-        super.updateItem(book, empty);
-        if (empty || book == null) {
-            setText(null);
-        } else {
-            setText(book.toString());
-            Spinner<Integer> quantitySpinner = spinnerMap.computeIfAbsent(book, b -> createQuantitySpinner());
-            setGraphic(quantitySpinner);
-        }
+    // Create the books list and quantity spinners
+    Label booksLabel = new Label("Books:");
+    ListView<Book> booksListView = new ListView<>();
+    booksListView.setItems(FXCollections.observableArrayList(booksList));
+    gridPane.add(booksLabel, 0, 2);
+    gridPane.add(booksListView, 1, 2);
+    List<Spinner<Integer>> quantitySpinners = new ArrayList<>();
+    for (int i = 0; i < booksList.size(); i++) {
+        Book book = booksList.get(i);
+        Spinner<Integer> spinner = createQuantitySpinner(book);
+        quantitySpinners.add(spinner);
+        gridPane.add(spinner, 2, 2 + i);
     }
-});
 
-    bookListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-        if (newValue != null) {
-            Spinner<Integer> quantitySpinner = spinnerMap.computeIfAbsent(newValue, book -> createQuantitySpinner());//create spinner
-            content.getChildren().setAll(
-                    new Label("Enter Supplier Information:"),
-                    new HBox(new Label("Name: "), supplierNameField),
-                    new HBox(new Label("ID: "), supplierIdField),
-                    new Label("Select books:"),
-                    bookListView,
-                    new Label("Quantity:"),
-                    quantitySpinner
-            );
+    Button placeOrderButton = new Button("Place Order");
+    placeOrderButton.setOnAction(event -> {
+        Supplier existingSupplier = null;
+        for (Supplier supplier : suppliers) {
+            if (supplier.getSname().equals(supplierNameField.getText()) && supplier.getId().equals(supplierIdField.getText())) {
+                existingSupplier = supplier;
+                break;
+            }
+        }
+
+        if (existingSupplier != null) {
+            Order order = new Order(existingSupplier, booksList);
+            double orderTotal = order.calculatePrice(booksList);
+            double revenue = existingSupplier.getRevenue();
+            existingSupplier.setRevenue(revenue + orderTotal);
+
+            // Place the order
+            placeOrder(existingSupplier, booksList, quantitySpinners);
         } else {
-            content.getChildren().setAll(
-                    new Label("Enter Supplier Information:"),
-                    new HBox(new Label("Name: "), supplierNameField),
-                    new HBox(new Label("ID: "), supplierIdField),
-                    new Label("Select books:"),
-                    bookListView
-            );
+            showAlert("Supplier NOT found in Suppliers list", Alert.AlertType.ERROR);
         }
     });
 
-    content.getChildren().addAll(
-            new Label("Enter Supplier Information:"),
-            new HBox(new Label("Name: "), supplierNameField),
-            new HBox(new Label("ID: "), supplierIdField),
-            new Label("Select books:"),
-            bookListView
-    );
-
-    orderDialog.getDialogPane().setContent(content);
-
-    ButtonType placeOrderButtonType = new ButtonType("Place Order", ButtonBar.ButtonData.OK_DONE);
-    orderDialog.getDialogPane().getButtonTypes().addAll(placeOrderButtonType, ButtonType.CANCEL);
-String supplierName = supplierNameField.getText();
-   orderDialog.setResultConverter(dialogButton -> {
-        if (dialogButton == placeOrderButtonType) {
-            // Get the selected books, their quantities, supplier name, and supplier ID
-            selectedBooks.clear();
-            int supplierId = Integer.parseInt(supplierIdField.getText());
-
-            for (Book book : bookListView.getSelectionModel().getSelectedItems()) {
-                Spinner<Integer> quantitySpinner = spinnerMap.get(book);
-                int quantity = quantitySpinner.getValue();
-
-                for (int i = 0; i < quantity; i++) {
-                    selectedBooks.add(book);
-                }
-            }
-
-            // Update the quantity for each book before returning the order information
-            for (Book book : selectedBooks) {
-                Spinner<Integer> quantitySpinner = spinnerMap.get(book);
-                int quantity = quantitySpinner.getValue();
-                book.setQuantity(quantity); // Update the quantity for the book
-            }
-
-            // Pass the supplier information along with the books
-            Pair<Supplier, List<Book>> orderInfo = new Pair<>(new Supplier(supplierName, supplierId), selectedBooks);
-            return orderInfo;
-        }
-        return null;
+    // Create the "Cancel" button
+    Button cancelButton = new Button("Cancel");
+    cancelButton.setOnAction(event -> {
+        orderDialog.close(); // Close the dialog without placing the order
     });
-
-    Optional<Pair<Supplier, List<Book>>> result = orderDialog.showAndWait();
-    result.ifPresent(pair -> {
-        Supplier supplierInfo = pair.getKey();
-        List<Book> books = pair.getValue();
-
-        System.out.println("Placed Order with the following books:");
-        Supplier supplier = new Supplier(supplierInfo.getSname(), supplierInfo.getId());
-
-        for (Book book : books) {
-            // placeOrder method in Supplier class
-            supplier.placeOrder(Collections.singletonList(book));
-        }
-
-        // Update the quantity in the spinnerMap after placing the order
-        for (Book book : selectedBooks) {
-            Spinner<Integer> quantitySpinner = spinnerMap.get(book);
-            quantitySpinner.getValueFactory().setValue(1); // Reset the spinner value
-        }
-    });
-}
-private static Spinner<Integer> createQuantitySpinner() {
-    Spinner<Integer> quantitySpinner = new Spinner<>(1, 100, 1);
-    quantitySpinner.setEditable(true); // to allow manual entry
-    quantitySpinner.getValueFactory().setValue(1); // Set initial value to be 1
-    return quantitySpinner;
+    orderDialog.getDialogPane().getButtonTypes().add( ButtonType.CANCEL);
+    gridPane.add(placeOrderButton, 1, 3 + booksList.size());
+    gridPane.add(cancelButton, 2, 3 + booksList.size());
+    orderDialog.getDialogPane().setContent(gridPane);
+    orderDialog.showAndWait();
 }
 
+private Spinner<Integer> createQuantitySpinner(Book book) {
+        Spinner<Integer> spinner = new Spinner<>(0, Integer.MAX_VALUE, 0);
+        spinner.setEditable(true);
+        SpinnerValueFactory.IntegerSpinnerValueFactory valueFactory =
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, book.getQuantity());
+        spinner.setValueFactory(valueFactory);
+        return spinner;
+    }
+
+    private void placeOrder(Supplier sup,List<Book>booksList,List<Spinner<Integer>> quantitySpinners) {
+        List<Book> selectedBooks = new ArrayList<>();
+        for (int i = 0; i < booksList.size(); i++) {
+            Book book = booksList.get(i);
+            int quantity = quantitySpinners.get(i).getValue();
+            book.setQuantity(quantity);
+            selectedBooks.add(book);
+        }
+
+        // Invoke the placeOrder method to update the quantities 
+        sup.placeOrder(selectedBooks);
+        showAlert("order placed successfully",Alert.AlertType.INFORMATION);
+    }
     //Alert
-    public Alert showAlert(String content, Alert.AlertType alertType) {
+public Alert showAlert(String content, Alert.AlertType alertType) {
     Alert alert = new Alert(alertType);
     alert.setHeaderText(null);
     alert.setContentText(content);
