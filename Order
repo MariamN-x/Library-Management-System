@@ -8,17 +8,17 @@ public class Order implements Serializable {
     public static List<Order> ordersList = new ArrayList<>();
 
     private int orderNum;
-    private String supplierName;
+    private Supplier supplier= new Supplier();
     private List<Book> booklist;
     private double totalPrice;
-    private int totalAmountOfOrders; // no. of books in the order
+    private int totalAmountInOrder; // no. of books in the order
 
-    public Order(String supplierName, List<Book> booklist) {
-        this.supplierName = supplierName;
+    public Order(Supplier supplier, List<Book> booklist) {
+        this.supplier=supplier;
         this.orderNum = getNextOrderNum();
         this.booklist = new ArrayList<>(booklist);
-        this.totalPrice = calculatePrice();
-        this.totalAmountOfOrders = booklist.size();
+        this.totalPrice = calculatePrice(booklist);
+        this.totalAmountInOrder = booklist.size();
         ordersList.add(this); 
     }
 
@@ -35,14 +35,7 @@ public class Order implements Serializable {
         return orderNum;
     }
 
-    public String getsupplierName() {
-        return supplierName;
-    }
-
-    public void setsupplierName(String supplierName) {
-        this.supplierName = supplierName;
-    }
-
+    
     public List<Book> getBooklist() {
         return booklist;
     }
@@ -59,19 +52,19 @@ public class Order implements Serializable {
         this.totalPrice = totalPrice;
     }
 
-    public int getTotalAmountOfOrders() {
-        return totalAmountOfOrders;
+    public int getTotalAmountInOrder() {
+        return totalAmountInOrder;
     }
 
     public void setTotalAmountOfOrders(int totalAmountOfOrders) {
-        this.totalAmountOfOrders = totalAmountOfOrders;
+        this.totalAmountInOrder = totalAmountOfOrders;
     }
 
     public void addToOrder(List<Book> books) {
         for (Book book : books) {
             booklist.add(book);
             totalPrice += book.getPrice();
-            totalAmountOfOrders++;
+            totalAmountInOrder++;
         }
     }
 
@@ -87,16 +80,19 @@ public class Order implements Serializable {
     public void cancelOrder(int orderIndex) {
         if (orderIndex >= 0 && orderIndex < booklist.size()) {
             Book canceledBook = booklist.remove(orderIndex);
-            totalAmountOfOrders--;
+            totalAmountInOrder--;
             totalPrice -= canceledBook.getPrice();
         }
     }
 
-     public double calculatePrice() {
+ public double calculatePrice(List<Book> booklist) {
     double total = 0.0;
     for (Book book : booklist) {
-        total += book.getPrice() * book.getQuantity();
-    }
+        double bookPrice = book.getPrice();
+        int bookQuantity = book.getQuantity();
+        if (bookPrice >= 0.0 && bookQuantity >= 0)
+        total += bookPrice * bookQuantity;
+  }
     return total;
 }
 }
