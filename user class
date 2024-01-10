@@ -1,36 +1,31 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
-
-/**
- *
- * @author Dell
- */
-import java.io.EOFException;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
+import javafx.scene.control.Alert;
+import javafx.stage.Stage;
 
 public class User implements Serializable{
     private static final long serialVersionUID = -1389733824459161677L;
 
+    public enum UserType {
+        ADMIN, BORROWER, LIBRARIAN
+    }
+
     private String UserName;
     private String Password;
-   public User()
-   {  
-   }
-
-    public User(String UserName, String Password) {
+    private UserType userType;
+    public static List<User> users;
+    
+    public User()
+    {  
+    }
+    public UserType getUserType() {
+            return userType;
+    }
+    public User(String UserName, String Password,UserType usertype) {
         this.UserName = UserName;
         this.Password = Password;
+        this .userType=usertype;
     }
     
     public void setUserName(String username) {
@@ -41,6 +36,10 @@ public class User implements Serializable{
         this.Password = Password;
     }
 
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
     public String getUserName() {
         return UserName;
     }
@@ -48,48 +47,7 @@ public class User implements Serializable{
     public String getPassword() {
         return Password;
     }
-    
-    
-public static List<User> readUsersFromFile(String fileName) {
-        try (FileInputStream input = new FileInputStream(fileName)) {
-            ObjectInputStream in = new ObjectInputStream(input);
-            List<User> users = new ArrayList<>();
-            boolean done = false;
-            while (!done) {
-                try {
-                    User user = (User) in.readObject();
-                    users.add(user);
-                } catch (EOFException e) {
-                    done = true;
-                    input.close();
-                } catch (ClassNotFoundException e) {
-                    System.out.println("Unknown object type: " + e.getMessage());
-                } catch (IOException e) {
-                    System.out.println("Error reading object: " + e.getMessage());
-                }
-            }
-            return users;
-        } catch (IOException e) {
-            System.out.println("Error reading file: " + e.getMessage());
-        }
-        return null; 
-    }
-
-
-    public static void writeUsersToFile(List<User> users, String fileName) {
-        try (FileOutputStream output = new FileOutputStream(fileName)) {
-            ObjectOutputStream out = new ObjectOutputStream(output);
-            for (User user : users) {
-                out.writeObject(user);
-            }
-            out.close();
-            System.out.println("Wrote " + users.size() + " users to file.");
-        } catch (IOException e) {
-            System.out.println("Error writing file: " + e.getMessage());
-        }
-    }
-
-    public static User login(List<User> users, String userName, String password) {
+public User login(List<User> users, String userName, String password) {
         for (User user : users) {
             if (user.getUserName().equals(userName) && user.getPassword().equals(password)) {
                 return user;
@@ -97,19 +55,34 @@ public static List<User> readUsersFromFile(String fileName) {
         }
         return null;
     }
-
-    public static void signUp(List<User> users, User user) {
-        users.add(user);
-        System.out.println("Signup successful!");
-    }
-    
-    public User editUser(List<User> users,String oldUsername, String newUsername, String newPassword) {
-    for (User user : users) {
-        if (user.getUserName().equals(oldUsername)) {
-            return user;
+public boolean isUsernameExists(String username) {
+    for (User user : User.users) {
+        if (user.getUserName().equals(username)) {
+            return true; 
         }
     }
-    return null;
-    }
+    return false; 
+}
+
+public boolean signup(String username, String password) {
+       User user;
+    if (isUsernameExists(username)) {
+        Dialogs.showAlert("Signup Failed!\nUsername ALREADY taken", Alert.AlertType.ERROR);
+        return false;          
+    } else {
+            user = new Borrower(username, password);
+           users.add(user);
+            System.out.println("Signup successful!");
+            
+        }
+
+        return true;
+} 
 }
     
+        
+    
+    
+    
+    
+   
