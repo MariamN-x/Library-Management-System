@@ -2,6 +2,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javafx.scene.control.Alert;
 
 public class Book implements Serializable {
     private static final long serialVersionUID = 3155157275827385334L;
@@ -22,13 +24,13 @@ public class Book implements Serializable {
     private static ArrayList<Book> reservedBooks = new ArrayList<>();
     private static int noReservedBooks = 0;
     private static ArrayList<Book> returnBooks = new ArrayList<>();
-    private static HashMap<String, Integer> borrowCount = new HashMap<>();
+    
 
     public enum Category {
         FICTION, NON_FICTION, MYSTERY, MEDICAL, SCIENCE_FICTION, FANTASY, ROMANCE, HORROR, BIOGRAPHY, HISTORY,
         SELF_HELP, HEALTH, TRAVEL, COOKING, CHILDREN, YOUNG_ADULT, SCIENCE, PHILOSOPHY, RELIGION, ART, POETRY, DRAMA,
         COMICS, CLASSICS, CRIME, THRILLER, BUSINESS, ECONOMICS, POLITICS, SOCIOLOGY, PSYCHOLOGY, TECHNICAL,
-        COMPUTER_SCIENCE, PROGRAMMING
+        COMPUTER_SCIENCE, PROGRAMMING,MEMOIR
     }
 
     public Book() {
@@ -43,7 +45,7 @@ public class Book implements Serializable {
         this.category = category;
         this.imagePath=imagePath;
         setListByCategory(category);
-        booksList.add(this);    // book added automatically after creation to be use with supplier
+        booksList.add(this);    // book added automatically to the list
     }
 
     public String getISBN() {
@@ -152,15 +154,51 @@ public class Book implements Serializable {
     }
     
     // add , edit , remove , list
-    public static Book findBookByISBN(String isbn) {
-        for (Book book : booksList) {
+    public static Book findBookByISBN(List<Book> books, String isbn) {
+    for (Book book : books) {
+        if (book.getISBN().equals(isbn)) {
+            return book;
+        }
+    }
+    return null;
+}
+    
+public void AddBook(String isbn, String title, String authorName, int quantity, double price, Category category,String imagePath) {
+        Book book = new Book(isbn, title, authorName, quantity, price, category, imagePath);
+        Book.booksList.add(book);
+    }
+
+    public boolean editBook(String isbn, String title, String author, int quantity, double price, Category category) {
+        Book book=Book.findBookByISBN(booksList,isbn);
+            if (book!=null) {
+                book.setTitle(title);
+                book.setAuthorName(author);
+                book.setQuantity(quantity);
+                book.setPrice(price);
+                book.setCategory(category);
+                return true;
+            }
+            else
+                return false;
+    }  
+    public boolean removeBook(String isbn)
+    {
+        Book book=Book.findBookByISBN(booksList,isbn);
+        if(book!=null){
+            Book.booksList.remove(book);
+            return true;
+        }
+        else
+            return false;       
+    }
+      public boolean isUniqueISBN(String isbn) {
+        for (Book book : Book.booksList) {
             if (book.getISBN().equals(isbn)) {
-                return book;
+                return false;
             }
         }
-        return null; // Book not found
-    }
-    
+        return true; 
+}
     //list books
     public List<String> ListbyTitle()
     {
@@ -229,8 +267,7 @@ public class Book implements Serializable {
         return all;
     }
 
-  
-    public static ArrayList<Book> selectCategory(Category category) {
+public static ArrayList<Book> selectCategory(Category category) {
     ArrayList<Book> selectedBooks = new ArrayList<>();
     for (Book book : booksList) {
         if (book.getCategory() == category) {
@@ -239,59 +276,9 @@ public class Book implements Serializable {
     }
     return selectedBooks;
 }
-//    private void setBorrowCount(Book book) {
-//        String isbn = book.getISBN();
-//        if (borrowCount.containsKey(isbn)) {
-//            int count = borrowCount.get(isbn);
-//            borrowCount.put(isbn, count + 1);
-//        } else {
-//            borrowCount.put(isbn, 1);
-//        }
-//        
-//    }
-//    public void Borrow(Book book) {
-//        String isbn=book.ISBN;
-//        int count = borrowCount.getOrDefault(isbn, 0);
-//        borrowCount.put(isbn, count + 1);
-//    }
-    
 
-    public void AddBook(String isbn, String title, String authorName, int quantity, double price, Category category,String imagePath) {
-        Book book = new Book(isbn, title, authorName, quantity, price, category, imagePath);
-        Book.booksList.add(book);
-    }
+   
 
-    public boolean editBook(String isbn, String title, String author, int quantity, double price, Category category) {
-        Book book=Book.findBookByISBN(isbn);
-            if (book!=null) {
-                book.setTitle(title);
-                book.setAuthorName(author);
-                book.setQuantity(quantity);
-                book.setPrice(price);
-                book.setCategory(category);
-                return true;
-            }
-            else
-                return false;
-    }  
-    public boolean removeBook(String isbn)
-    {
-        Book book=Book.findBookByISBN(isbn);
-        if(book!=null){
-            Book.booksList.remove(book);
-            return true;
-        }
-        else
-            return false;       
-    }
-      public boolean isUniqueISBN(String isbn) {
-        for (Book book : Book.booksList) {
-            if (book.getISBN().equals(isbn)) {
-                return false;
-            }
-        }
-        return true; 
-}   
       @Override
       public String toString()
       {
