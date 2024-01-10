@@ -1,52 +1,58 @@
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Serializable;
+import java.util.ArrayList;   
+import java.util.Date;
+import java.util.List;
 
 
-public class Borrower extends User {
+public class Borrower extends User implements Serializable {
+    private static final long serialVersionUID = 7658793135987417738L;
+    private List<Book> borrowedBooksperBorrower;
     
-    public ArrayList<Borrower> borrowers = new ArrayList<>();
-    public ArrayList<Borrowing> borrowings;
-    public HashMap<Book, Integer> lostBooks;
-    
+    public List<Book> getBorrowedBooksperBorrower() {
+        return borrowedBooksperBorrower;
+    }
+
+    public void setBorrowedBooksperBorrower(List<Book> borrowedBooks) {
+        this.borrowedBooksperBorrower = borrowedBooks;
+    }
+    public Borrower(){}
     public Borrower(String username,String pass){
         super.setUserName(username);
         super.setPassword (pass);
-        borrowings = new ArrayList<>();
-        lostBooks = new HashMap<>();
-       
-      }
-
+        borrowedBooksperBorrower=new ArrayList<>();
+    }
+ 
+    @Override
     public String getUserName() {
-       return super.getUserName();
+        return super.getUserName();
     }
 
-    public void setUserName(String UserName) {
-       super.setUserName(UserName); 
+    @Override
+    public void setUserName(String userName) {
+        super.setUserName(userName);
     }
 
+    @Override
     public String getPassword() {
         return super.getPassword();
     }
 
-    public void setPassword(String Password) {
-         super.setPassword (Password);
+    @Override
+    public void setPassword(String password) {
+        super.setPassword(password);
     }
-    
-    
-    
-    
-       public void viewBorrowingDetails() {
-        for (Borrowing borrowing : borrowings) {
-            System.out.println("Start Date: " + borrowing.getStartDate());
-            System.out.println("End Date: " + borrowing.getEndDate());
-            System.out.println("Books Borrowed:");
-            for (Book book : borrowing.getBooks()) {
-                System.out.println("- " + book.getTitle());
-            }
-            System.out.println();
+
+    public List<String> viewBorrowingDetails() {
+        List<String>str=new ArrayList<>();
+        for (Borrowing borrowing : Borrowing.borrowingsList) {
+            Date startDate=borrowing.getStartDate();
+            str.add("Start Date: " + startDate);
+            str.add("End Date: " + borrowing.getEndDate(startDate));
+            str.add("Borrowed Books: "+borrowedBooksperBorrower.toString());
+           
         }
+        return str;
     }
 
 //    public void rateBook(Book book, double rating) {
@@ -60,26 +66,36 @@ public class Borrower extends User {
 
     public double calculateTotalPayment() {
         double totalPayment = 0.0;
-        for (Borrowing borrowing : borrowings) {
+        for (Borrowing borrowing :Borrowing.borrowingsList) {
             totalPayment += borrowing.getPayment();
         }
         return totalPayment;
     }
-
-    public int getLostBookCount() {
-        int lostBookCount = 0;
-        for (Map.Entry<Book, Integer> entry : lostBooks.entrySet()) {
-            lostBookCount += entry.getValue();
-        }
-        return lostBookCount;
-    }
-
-    public int getBorrowedBookCount() {
-        int borrowedBookCount = 0;
-        for (Borrowing borrowing : borrowings) {
-           // borrowedBookCount += borrowing.getBook().size();
-        }
-        return borrowedBookCount;
-    }
-
+//
+//    public int getLostBookCount() {
+//        int lostBookCount = 0;
+//        for (Map.Entry<Book, Integer> entry : lostBooks.entrySet()) {
+//            lostBookCount += entry.getValue();
+//        }
+//        return lostBookCount;
+//    }
+//
+//    public int getBorrowedBookCount() {
+//        int borrowedBookCount = 0;
+//        for (Borrowing borrowing : Borrowing.borrowingsList) {
+//             borrowedBookCount += borrowing.getbookList().size();
+//        }
+//        return borrowedBookCount;
+//    }
+@Override
+      public String toString()
+      {
+          StringBuilder details=new StringBuilder();
+          for(Book book:borrowedBooksperBorrower)
+          {
+              details.append(book.toString());
+          }
+          return details.toString();
+      }
 }
+
