@@ -1,13 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
-
-
-
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import javafx.scene.control.Alert;
 
 
 public class Admin extends User implements Serializable {
@@ -55,4 +49,88 @@ public class Admin extends User implements Serializable {
         users.add(bor);
     }
     
+    
+protected boolean editUser(String oldUsername, String newUsername, String newPassword) {
+    User userToEdit = null;  // Initialize outside the loop
+
+    for (User user : users) {
+        if (user.getUserName().equals(oldUsername)) {
+            userToEdit = user;
+            break; 
+        }
+    }
+
+    if (userToEdit != null) {
+        if (!oldUsername.equals(newUsername) && isUsernameExists(newUsername)) {
+            Dialogs.showAlert("Edit Failed!\nNew username is already taken", Alert.AlertType.ERROR);
+            return false;
+        }
+
+        userToEdit.setUserName(newUsername);
+        userToEdit.setPassword(newPassword);
+
+        Dialogs.showAlert("User information updated successfully", Alert.AlertType.INFORMATION);
+        return true;
+    } else {
+        Dialogs.showAlert("User not found", Alert.AlertType.ERROR);
+        return false;
+    }
+}
+
+public boolean removeUser(String username) {
+    User userToRemove= null;
+    for (User user : users) {
+        if (user.getUserName().equals(username)) {
+            userToRemove=user;
+            break;
+        }
+    }
+ 
+    if (userToRemove != null) {
+        User.users.remove(userToRemove);
+        Dialogs.showAlert("User removed successfully", Alert.AlertType.INFORMATION);
+        return true;
+    } else {
+        Dialogs.showAlert("User not found", Alert.AlertType.ERROR);
+        return false;
+    }
+}
+ 
+public List<String> getUsernames() {
+        List<String> usernames = new ArrayList<>();
+        for (User user : users) {
+            usernames.add(user.getUserName());
+        }
+        return usernames;
+    }
+
+public List<String> getPasswords() {
+        List<String> passwords = new ArrayList<>();
+        for (User user : users) {
+            passwords.add(user.getUserName()+" "+user.getPassword());
+        }
+        return passwords;
+    }
+
+public List<String> getUserTypes() {
+    List<String> userTypes = new ArrayList<>();
+    for (User user : users) {
+        UserType userType = (user.getUserType() != null) ? user.getUserType() : UserType.BORROWER;
+        userTypes.add(user.getUserName() + " " + userType.toString());
+    }
+    return userTypes;
+}
+
+
+
+public List<String> getAllUsers() {
+    List<String> allUsers = new ArrayList<>();
+    for (User user : users) {
+        String userTypeString = (user.getUserType() != null) ? user.getUserType().toString() : "BORROWER";
+        allUsers.add("Username: " + user.getUserName() + "\tPassword: " + user.getPassword() + "\tUser Type: " + userTypeString);
+    }
+    return allUsers;
+}
+
+
 }
