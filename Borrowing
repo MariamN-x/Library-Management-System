@@ -16,9 +16,10 @@ class Borrowing implements Serializable {
     
     public static List<Borrowing> borrowingsList = new ArrayList<>();
     public static List<Book>borrowedBooks=new ArrayList<>();
-    private static HashMap<String, Integer> borrowCount = new HashMap<>();
-    
-    private Borrower borrower;
+    private static HashMap<String, Integer> borrowCount = new HashMap<>();// isbn w count
+    private static HashMap<String, Double> bookRevenueMap = new HashMap<>();// isbn w price
+    private static HashMap<User, Double> userRevenueMap = new HashMap<>(); // borrower w price
+    private User user;
     private Date startDate;
     private Date endDate;
     private double payment;
@@ -26,17 +27,19 @@ class Borrowing implements Serializable {
     Calendar calendar;    // to set the end date to be after 2 weeks of start date
     
     public Borrowing(){}
-    public Borrowing(Borrower bor){
-    borrower=new Borrower(bor.getUserName(),bor.getPassword());
+    public Borrowing(User user) {
+        if (user instanceof Borrower || user instanceof Librarian) {
+            this.user = user;
+        } else {
+            throw new IllegalArgumentException("Invalid user type for borrowing");
+        }
     }
-    public Borrower getBorrower() {
-        return borrower;
+    public User getUser() {
+        return user;
     }
-
-    public void setBorrower(Borrower borrower) {
-        this.borrower = borrower;
+    public void setUser(User user) {
+        this.user = user;
     }
-
     public Date getStartDate() {
         return startDate;
     }
@@ -70,7 +73,7 @@ class Borrowing implements Serializable {
     }
     
     public static void setBorrowCount() {
-
+        borrowCount.clear();
         if(borrowedBooks.isEmpty())
         {
           Borrowing.borrowedBooks=Files.readObjectsFromFile("borrowedBooks.bin"); 
@@ -85,12 +88,52 @@ class Borrowing implements Serializable {
             }
         }
     }
-    public static void getBorrowCount() {
-            for (Map.Entry<String, Integer> entry : borrowCount.entrySet()) {
-                System.out.println("ISBN: " + entry.getKey() + ", Count: " + entry.getValue());
+  
+ public static void setBookRevenueMap() {
+        bookRevenueMap.clear();
+        if (borrowedBooks.isEmpty()) {
+            Borrowing.borrowedBooks = Files.readObjectsFromFile("borrowedBooks.bin");
+        }
+        for (Book b : borrowedBooks) {
+            String isbn = b.getISBN();
+            double bookPrice = b.getPrice();
+            if (bookRevenueMap.containsKey(isbn)) {
+                double currentRevenue = bookRevenueMap.get(isbn);
+                bookRevenueMap.put(isbn, currentRevenue + bookPrice);
+            } else {
+                bookRevenueMap.put(isbn, bookPrice);
             }
+        }
     }
 
+public static void setBorrowerRevenueMap() {
+        userRevenueMap.clear();
+        for (Borrowing borrowing : borrowingsList) {
+            User user = borrowing.getUser();
+            Double revenue = userRevenueMap.get(user);
+
+            if (revenue == null) {
+                revenue = 0.0;
+            }
+
+            for (Book book : Borrowing.borrowedBooks) {
+                double bookPrice = book.getPrice();
+                revenue += bookPrice;
+            }
+
+            userRevenueMap.put(user, revenue);
+        }
+}
+
+ public double calculateRevenue() {
+        double revenue = 0.0;
+        for (Book book : borrowedBooks) {
+            double bookPrice = book.getPrice();
+            revenue += bookPrice;
+        }
+        return revenue;
+    }
+    
 //public void createBorrowing(Date startDate, Borrower borrower, List<Book> borrowedBooks, double totalPrice) {
 //    Borrowing newBorrowing = new Borrowing( borrower);
 //    newBorrowing.startDate = startDate;
@@ -110,144 +153,166 @@ class Borrowing implements Serializable {
 //    }
 //    Borrowing.borrowingsList.add(newBorrowing);
 //} 
- public void createBorrowing(Date startDate, Borrower borrower, List<Book> borrowedbooks, double totalPrice) {
-        Borrowing newBorrowing = new Borrowing(borrower);
-        newBorrowing.startDate = startDate;
-        newBorrowing.endDate = newBorrowing.getEndDate(startDate);
+ public void createBorrowing(Date startDate, User user, List<Book> borrowedBooks, double totalPrice) {
+    Borrowing newBorrowing = new Borrowing(user);
+    newBorrowing.startDate = startDate;
+    newBorrowing.endDate = newBorrowing.getEndDate(startDate);
 
-        // check quantity for each book
-        for (Book book : borrowedbooks) {
-            if (book.getQuantity() > 0) {
-                book.setQuantity(book.getQuantity() - 1);
-                totalPrice = this.totalBorrowingPrice(borrowedbooks);
-                newBorrowing.payment = totalPrice;
-                borrowedBooks.add(book);
-            } else {
-                return; // Stop creating new borrowings if a book is not available
-            }
+    for (Book book : borrowedBooks) {
+        if (book.getQuantity() > 0) {
+            book.setQuantity(book.getQuantity() - 1);
+            totalPrice = this.totalBorrowingPrice(Borrowing.borrowedBooks);
+            newBorrowing.payment = totalPrice;
+            Borrowing.borrowedBooks.add(book);
+        } else {
+            return; // Stop creating new borrowings if a book is not available(Quantity= 0)
         }
-        borrower.setBorrowedBooksperBorrower(borrowedbooks);
-        borrowingsList.add(newBorrowing);
-        setBorrowCount(); // Update the borrow count for all borrowed books
     }
+
+    // Update borrowed books list for the user
+    if (user instanceof Borrower) {
+        ((Borrower) user).setBorrowedBooksperBorrower(Borrowing.borrowedBooks);
+        ((Borrower) user).getBorrowingsPerBorrower().add(newBorrowing);
+    } else if (user instanceof Librarian) {
+        ((Librarian) user).setBorrowedBooksperLibrarian(Borrowing.borrowedBooks);
+        ((Librarian) user).getBorrowingsPerLibrarian().add(newBorrowing);
+    }
+
+    borrowingsList.add(newBorrowing);
+    setBorrowCount(); // Update the borrow count for all borrowed books
+    setBookRevenueMap();
+    setBorrowerRevenueMap();
+}
+
  
-//these 3 methods are not required 
-//    public void borrowBook(List<Book> books) { //making order
-//        Order newOrder = new Order(sname, books);
-//        this.ordersList.add(newOrder);
-//
-//        // add books to the library & update quantity
-//        for (Book book : books) {
-//            Book existingBook = Book.findBookByISBN(book.getISBN());
-//            if (existingBook != null) {
-//                int currentQuantity = existingBook.getQuantity();
-//                int updatedQuantity = currentQuantity - book.getQuantity();
-//                existingBook.setQuantity(updatedQuantity);
-//            } else {
-//                Book.booksList.add(book);
-//            }
-//            // Update quantity of book being ordered
-//            int updatedOrderQuantity = book.getQuantity() - book.getQuantity(); // Calculate updated order quantity (i.e., negative value)
-//            book.setQuantity(0); // Set quantity to 0 for book being ordered (i.e., it's now considered as sold)
-//            Double updatedRevenue = newOrder.calculatePrice() + updatedOrderQuantity * book.getPrice(); // Calculate updated revenue (i.e., includes sold quantity)
-//            revenue = updatedRevenue; // Update revenue with new value (i.e., includes sold quantity)
+//public void editBorrowing(String attributeName, Object newValue) {
+//        for (Borrowing borrowing : borrowingsList) {
+//                switch (attributeName.toLowerCase()) {
+//                    case "startdate":
+//                        borrowing.startDate = (Date) newValue;
+//                        break;
+//                    case "enddate":
+//                        borrowing.endDate = (Date) newValue;
+//                        break;
+//                    case "borrowers":
+//                        borrowing.user = (Borrower)newValue;
+//                        break;
+//                    case "books":
+//                        Borrowing.borrowedBooks = (ArrayList<Book>) newValue;
+//                        break;
+//                    case "payment":
+//                        borrowing.payment = (Double) newValue;
+//                        break;
+//                    default:
+//                        System.out.println("Invalid attribute name.");
+//                        return;
+//                }
+//                System.out.println("Borrowing record updated.");
+//                break;
 //        }
 //}
-//    
-//    public void editBorrowing(String attributeName, Object newValue) {
-//            for (Borrowing borrowing : borrowingsList) {
-//                    switch (attributeName.toLowerCase()) {
-//                        case "startdate":
-//                            borrowing.startDate = (Date) newValue;
-//                            break;
-//                        case "enddate":
-//                            borrowing.endDate = (Date) newValue;
-//                            break;
-//                        case "borrowers":
-//                            borrowing.borrower = (Borrower)newValue;
-//                            break;
-//                        case "books":
-//                            borrowing.borrowedBooks = (ArrayList<Book>) newValue;
-//                            break;
-//                        case "payment":
-//                            borrowing.payment = (Double) newValue;
-//                            break;
-//                        default:
-//                            System.out.println("Invalid attribute name.");
-//                            return;
-//                    }
-//                    System.out.println("Borrowing record updated.");
-//                    break;
-//            }
-//    }
-//    
-//   public void cancelBorrowingByAttributes(Borrower borrower, ArrayList<Book> borrowedBooks) {    
-//        for (int i = 0; i < borrowingsList.size(); i++) {
-//            Borrowing borrowing = borrowingsList.get(i);
-//            if (borrowing.borrower.getUserName().equals(borrower.getUserName())) {
-//                borrowingsList.remove(i);
-//                System.out.println("Borrowing record canceled.");
-//                break;
-//            }
-//        }        
-//    }
 
-   public List<String> allBorrowingDetails()
-   {
-       List<String>details=new ArrayList<>();
-       for(Borrowing borrowing:Borrowing.borrowingsList){
-           details.add("the borrower: "+borrowing.getBorrower().getUserName());
-           details.add("the borrower: "+borrowing.getBorrower().viewBorrowingDetails());
-           details.add("the borrowed books: "+borrowing.getBorrower().getBorrowedBooksperBorrower().toString());
-        }
-       return details;
-   }
-   public double totalBorrowingPrice(List<Book>borrowed)
-   {
-       double price=0.0;
-       for(Book bor:borrowed)
-           price+=bor.getPrice();
-       return price;
-   }
-   
-   public static List<String> mostBorrowedBooksInPeriod(String startDateStr, String endDateStr) {
-    List<Book> books = Files.readObjectsFromFile("book.bin");
-    List<String> result = new ArrayList<>();
-    if (books == null || books.isEmpty()) {
-        System.out.println("No books available.");
-        return Collections.emptyList();
+//public void cancelBorrowingByAttributes(Borrower borrower, ArrayList<Book> borrowedBooks) {    
+//    for (int i = 0; i < borrowingsList.size(); i++) {
+//        Borrowing borrowing = borrowingsList.get(i);
+//        if (borrowing.borrower.getUserName().equals(borrower.getUserName())) {
+//            borrowingsList.remove(i);
+//            System.out.println("Borrowing record canceled.");
+//            break;
+//        }
+//    }        
+//}
+
+public static List<String> getAllBorrowingDetails() {
+    List<String> detailsList = new ArrayList<>();
+
+    if (borrowingsList.isEmpty()) {
+        detailsList.add("No borrowings available.");
+        return detailsList;
     }
-    
-   try {
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    Date startDate = dateFormat.parse(startDateStr);
-    Date endDate = dateFormat.parse(endDateStr);// **** in UML make it return list of Book instead of String *****
-     int maxCount=0;
+
     for (Borrowing borrowing : borrowingsList) {
+        detailsList.add("Borrowing Details:");
+        detailsList.add("User: " + borrowing.getUser().getUserName());
+        detailsList.add("Start Date: " + borrowing.getStartDate());
+        detailsList.add("End Date: " + borrowing.getEndDate(borrowing.getStartDate()));
+        detailsList.add("Payment: " + borrowing.getPayment());
+        detailsList.add("Rating: " + borrowing.getRating());
+        if(borrowedBooks.isEmpty()){
+        Borrowing.borrowedBooks=Files.readObjectsFromFile("borrowedBooks.bin"); }
+        detailsList.add("Borrowed Books:");
+        for (Book book : borrowedBooks) {
+            detailsList.add("- ISBN: " + book.getISBN() + ", Title: " + book.getTitle() + ", Price: " + book.getPrice());
+        }
+
+        detailsList.add("------------------------------");
+    }
+
+    return detailsList;
+}
+
+public double totalBorrowingPrice(List<Book>borrowed)
+{
+    double price=0.0;
+    for(Book bor:borrowed)
+       price+=bor.getPrice();
+    return price;
+}
+public static double totalBorrowingRevInPeriod(String startDateStr, String endDateStr) {
+    try {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date startDate = dateFormat.parse(startDateStr);
+        Date endDate = dateFormat.parse(endDateStr);
+
+        double totalRevenue = 0.0;
+
+        for (Borrowing borrowing : borrowingsList) {
             Date borrowingStartDate = borrowing.getStartDate();
             Date borrowingEndDate = borrowing.getEndDate(borrowingStartDate);
+
             if (startDate.before(borrowingEndDate) && endDate.after(borrowingStartDate)) {
-                maxCount = Collections.max(borrowCount.values());
-            }
-    }
-    
-    for (Map.Entry<String, Integer> entry : borrowCount.entrySet()) {
-        if (entry.getValue() == maxCount) {
-            Book foundBook = Book.findBookByISBN(books, entry.getKey());
-            if (foundBook != null) {
-                result.add(foundBook.toString());
-            } else {
-                System.out.println("Cannot find book with ISBN: " + entry.getKey());
+                totalRevenue += borrowing.calculateRevenue();
             }
         }
-    }
 
-    return result;
+        return totalRevenue;
     } catch (ParseException e) {
         Dialogs.showAlert("Date format is incorrect", Alert.AlertType.ERROR);
-       return null;
+        return 0.0;
     }
 }
+
+public static double averageBorrowingRevenueInPeriod(String startDateStr, String endDateStr) {
+    try {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date startDate = dateFormat.parse(startDateStr);
+        Date endDate = dateFormat.parse(endDateStr);
+
+        double totalRevenue = 0.0;
+        int borrowingCount = 0;
+
+        for (Borrowing borrowing : borrowingsList) {
+            Date borrowingStartDate = borrowing.getStartDate();
+            Date borrowingEndDate = borrowing.getEndDate(borrowingStartDate);
+
+            if (startDate.before(borrowingEndDate) && endDate.after(borrowingStartDate)) {
+                totalRevenue += borrowing.calculateRevenue();
+                borrowingCount++;
+            }
+        }
+
+        if (borrowingCount > 0) {
+            return totalRevenue / borrowingCount;
+        } else {
+            return 0.0; // To avoid division by zero
+        }
+    } catch (ParseException e) {
+        Dialogs.showAlert("Date format is incorrect", Alert.AlertType.ERROR);
+        return 0.0;
+    }
+}
+
+
 public static int NoOfBorrowsInPeriod(String startDateStr, String endDateStr) {
     try {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -269,5 +334,178 @@ public static int NoOfBorrowsInPeriod(String startDateStr, String endDateStr) {
         return 0;
     }
 }
+//****make it return list<Book> in UML*****//
+public static List<String> mostBorrowedBooksInPeriod(String startDateStr, String endDateStr) {
+    List<Book> books = Files.readObjectsFromFile("book.bin");
+    List<String> result = new ArrayList<>();
+
+    if (books == null || books.isEmpty()) {
+        System.out.println("No books available.");
+        return Collections.emptyList();
+    }   
+    // Initialize borrowCount map
+    Borrowing.setBorrowCount();
+    try {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date startDate = dateFormat.parse(startDateStr);
+        Date endDate = dateFormat.parse(endDateStr);
+
+        int maxCount = 0;
+
+        for (Borrowing borrowing : borrowingsList) {
+            Date borrowingStartDate = borrowing.getStartDate();
+            Date borrowingEndDate = borrowing.getEndDate(borrowingStartDate);
+
+            if (startDate.before(borrowingEndDate) && endDate.after(borrowingStartDate)) {
+                maxCount = Collections.max(borrowCount.values());
+            }
+        }
+
+        // convert list of book to list of string just for showListDialog(List<String>)
+        for (Map.Entry<String, Integer> entry : borrowCount.entrySet()) {
+            if (entry.getValue() == maxCount) {
+                Book foundBook = Book.findBookByISBN(books, entry.getKey());
+                if (foundBook != null) {
+                    result.add(foundBook.toString());
+                } else {
+                    System.out.println("Cannot find book with ISBN: " + entry.getKey());
+                }
+            }
+        }
+
+        return result;
+    } catch (ParseException e) {
+        Dialogs.showAlert("Date format is incorrect", Alert.AlertType.ERROR);
+        return null;
+    }
+}
+
+public static List<String> mostRevenueBooksInPeriod(String startDateStr, String endDateStr) {
+    List<Book> books = Files.readObjectsFromFile("book.bin");
+    List<String> result = new ArrayList<>();
+    if (books == null || books.isEmpty()) {
+        System.out.println("No books available.");
+        return Collections.emptyList();
+    }
+    try {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date startDate = dateFormat.parse(startDateStr);
+        Date endDate = dateFormat.parse(endDateStr);
+        setBookRevenueMap();
+        for (Borrowing borrowing : borrowingsList) {
+            Date borrowingStartDate = borrowing.getStartDate();
+            Date borrowingEndDate = borrowing.getEndDate(borrowingStartDate);
+
+            if (startDate.before(borrowingEndDate) && endDate.after(borrowingStartDate)) {
+                List<Book> borrowed = Borrowing.borrowedBooks;
+
+                for (Book book : borrowed) {
+                    double currentRevenue = bookRevenueMap.getOrDefault(book.getISBN(), 0.0);
+                    currentRevenue += book.getPrice();
+                    bookRevenueMap.put(book.getISBN(), currentRevenue);
+                }
+            }
+        }
+
+        if (bookRevenueMap.isEmpty()) {
+            System.out.println("No revenue recorded for the specified period.");
+            return Collections.emptyList();
+        }
+
+        // Find the book with the maximum revenue
+        String mostRevenueBookISBN = Collections.max(bookRevenueMap.entrySet(), Map.Entry.comparingByValue()).getKey();
+        Book mostRevenueBook = Book.findBookByISBN(books, mostRevenueBookISBN);
+
+        if (mostRevenueBook != null) {
+            double maxRevenue = bookRevenueMap.get(mostRevenueBookISBN);
+            result.add("Most Revenue Book: " + mostRevenueBook.toString());
+            result.add("Revenue: " + maxRevenue);
+        } else {
+            System.out.println("Cannot find the most revenue book.");
+        }
+
+        return result;
+    } catch (ParseException e) {
+        Dialogs.showAlert("Date format is incorrect", Alert.AlertType.ERROR);
+        return Collections.emptyList();
+    }
+}
+
+// //***** make it return Borrower in the UML****
+//   public static List<String> borrowerWithMaxRevenue() {
+//    setBorrowerRevenueMap();
+//    List<Borrower> maxRevenueBorrowers = new ArrayList<>();
+//    double maxRevenue = Double.MIN_VALUE;
+//
+//    for (Borrowing borrowing : borrowingsList) {
+//        Borrower borrower = borrowing.getBorrower();
+//        Double revenue = borrowerRevenueMap.get(borrower);
+//        if (revenue == null) {
+//            revenue = 0.0;
+//        }
+//
+//        revenue += borrowing.calculateRevenue();
+//        borrowerRevenueMap.put(borrower, revenue);
+//
+//        if (revenue > maxRevenue) {
+//            maxRevenue = revenue;
+//            maxRevenueBorrowers.clear(); // Clear the list if a new maximum is found
+//            maxRevenueBorrowers.add(borrower);
+//        } else if (revenue == maxRevenue) {
+//            maxRevenueBorrowers.add(borrower);
+//        }
+//    }
+//
+//    List<String> result = new ArrayList<>();
+//    for (Borrower borrower : maxRevenueBorrowers) {
+//        result.add(borrower.toString());
+//    }
+//
+//    return result;
+//}
+// 
+public static List<User> getMaxUserBorrowings(User obj) {
+    List<User> maxUsersBorrowings = new ArrayList<>();
+    int maxBorrowingsCount = 0;
+
+    if (obj instanceof Borrower) {
+        for (User user : User.users) {
+            if (user instanceof Borrower) {
+                List<Book> userBorrowings = ((Borrower) user).getBorrowedBooksperBorrower();
+                int borrowingsCount = Collections.frequency(userBorrowings, obj);
+
+                if (borrowingsCount > maxBorrowingsCount) {
+                    maxBorrowingsCount = borrowingsCount;
+                    maxUsersBorrowings.clear();
+                    maxUsersBorrowings.add(user);
+                } else if (borrowingsCount == maxBorrowingsCount) {
+                    maxUsersBorrowings.add(user);
+                }
+            }
+        }
+    } else if (obj instanceof Librarian) {
+        for (User user : User.users) {
+            if (user instanceof Librarian) {
+                List<Book> userBorrowings = ((Librarian) user).getBorrowedBooksperLibrarian();
+                int borrowingsCount = Collections.frequency(userBorrowings, obj);
+
+                if (borrowingsCount > maxBorrowingsCount) {
+                    maxBorrowingsCount = borrowingsCount;
+                    maxUsersBorrowings.clear();
+                    maxUsersBorrowings.add(user);
+                } else if (borrowingsCount == maxBorrowingsCount) {
+                    maxUsersBorrowings.add(user);
+                }
+            }
+        }
+    }
+
+    return maxUsersBorrowings;
+}
+
+
+
+
+
 
 }
