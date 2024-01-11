@@ -8,6 +8,7 @@ import java.util.List;
 public class Borrower extends User implements Serializable {
     private static final long serialVersionUID = 7658793135987417738L;
     private List<Book> borrowedBooksperBorrower;
+    private List<Borrowing>borrowingsPerBorrower=new ArrayList<>();
     
     public List<Book> getBorrowedBooksperBorrower() {
         return borrowedBooksperBorrower;
@@ -43,6 +44,14 @@ public class Borrower extends User implements Serializable {
         super.setPassword(password);
     }
 
+    public List<Borrowing> getBorrowingsPerBorrower() {
+        return borrowingsPerBorrower;
+    }
+
+    public void setBorrowingsPerBorrower(List<Borrowing> borrowingsPerBorrower) {
+        this.borrowingsPerBorrower = borrowingsPerBorrower;
+    }
+    
     public List<String> viewBorrowingDetails() {
         List<String>str=new ArrayList<>();
         for (Borrowing borrowing : Borrowing.borrowingsList) {
@@ -90,12 +99,7 @@ public class Borrower extends User implements Serializable {
 @Override
       public String toString()
       {
-          StringBuilder details=new StringBuilder();
-          for(Book book:borrowedBooksperBorrower)
-          {
-              details.append(book.toString());
-          }
-          return details.toString();
+          return"Username: "+getUserName()+"\tpassword: "+getPassword();
       }
 }
 
