@@ -1,51 +1,41 @@
-
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
+public class Librarian extends User implements Serializable{
+    private static final long serialVersionUID = 1512619471877543814L;
 
-
-class Librarian extends User {
-    private List<Borrowing> borrowings;
+    public static ArrayList<Librarian> librarians = new ArrayList<>();
+    private List<Book> borrowedBooksperLibrarian=new ArrayList<>();
+    private List<Borrowing>borrowingsPerLibrarian=new ArrayList<>();
     private List<Book>books;
-
-    public Librarian() {
-        borrowings = new ArrayList<>();
+    public Librarian()
+    {
     }
-
-      public Librarian(String username,String pass){
+    public Librarian(String username,String pass){
         super.setUserName(username);
         super.setPassword (pass);
-      }
-      
-      @Override
-     public String getUserName() {
-       return super.getUserName();
+        super.setUserType(User.UserType.LIBRARIAN);
     }
-      @Override
-
-    public void setUserName(String UserName) {
-       super.setUserName(UserName); 
+    @Override
+    public String getUserName() {
+        return super.getUserName();
     }
-      @Override
 
+    @Override
+    public void setUserName(String userName) {
+        super.setUserName(userName);
+    }
+
+    @Override
     public String getPassword() {
         return super.getPassword();
     }
-      @Override
 
-    public void setPassword(String Password) {
-         super.setPassword (Password);
+    @Override
+    public void setPassword(String password) {
+        super.setPassword(password);
     }
-    
-    public List<Borrowing> getBorrowings() {
-        return borrowings;
-    }
-
-    public void setBorrowings(List<Borrowing> borrowings) {
-        this.borrowings = borrowings;
-    }
-
     public List<Book> getBooks() {
         return books;
     }
@@ -54,72 +44,44 @@ class Librarian extends User {
         this.books = books;
     }
 
-    
+    public List<Book> getBorrowedBooksperLibrarian() {
+        return borrowedBooksperLibrarian;
+    }
+
+    public void setBorrowedBooksperLibrarian(List<Book> borrowedBooksperLibrarian) {
+        this.borrowedBooksperLibrarian = borrowedBooksperLibrarian;
+    }
+
+    public List<Borrowing> getBorrowingsPerLibrarian() {
+        return borrowingsPerLibrarian;
+    }
+
+    public void setBorrowingsPerLibrarian(List<Borrowing> borrowingsPerLibrarian) {
+        this.borrowingsPerLibrarian = borrowingsPerLibrarian;
+    }
+
    
-    
-//    
-//    public void createBorrowing(String bookTitle, String borrowerName, LocalDate startDate, LocalDate endDate) {
-//        Borrowing borrowing = new Borrowing(bookTitle, borrowerName, startDate, endDate);
-//        borrowings.add(borrowing);
-//    }
-
-
-    public double calculatePayment(Borrowing borrowing) {
-        
-        return 0;
-    }
-    
-    
-    public ArrayList<Book> selectPreferences(String preference, int numberOfBooks) {
-        ArrayList<Book> selectedBooks = new ArrayList<>();
-        ArrayList<Book> preferenceBooks = new ArrayList<>();
-
-        for (Book book : books) {
-            if (book.getCategory().toString().equalsIgnoreCase(preference)) {
-                preferenceBooks.add(book);
-            }
-        }
-
-        // If the number of preference books is less than the desired number, return all preference books
-        if (preferenceBooks.size() <= numberOfBooks) {
-            return preferenceBooks;
-        }
-
-        // Randomly select the desired number of preference books
-        Random random = new Random();
-        while (selectedBooks.size() < numberOfBooks) {
-            int randomIndex = random.nextInt(preferenceBooks.size());
-            Book selectedBook = preferenceBooks.get(randomIndex);
-            if (!selectedBooks.contains(selectedBook)) {
-                selectedBooks.add(selectedBook);
-            }
-        }
-
-        return selectedBooks;
-    }
-
-    
-    
     public Book selectBook(String bookTitle, String authorName, String ISBN) {
         
         for (Book i : books) {
-            if (i.getTitle().equals(bookTitle) && i.getAuthor().equals(authorName) && i.getISBN().equals(ISBN)) {
+            if (i.getTitle().equals(bookTitle) && i.getAuthorName().equals(authorName) && i.getISBN() == ISBN) {
                 return i;
             }
         }
         return null ;     
     }
-    public ArrayList<Book> selectCategory(Category category) {
-    ArrayList<Book> selectedBooks = new ArrayList<>();
-
-    for (Book book : books) {
-        if (book.getCategory() == category) {
-            selectedBooks.add(book);
-        }
-    }
-
-    return selectedBooks;
+//    public ArrayList<Book> selectCategory(Book.Category category) {
+//    ArrayList<Book> selectedBooks = new ArrayList<>();
+//
+//    for (Book book : books) {
+//        if (book.getCategory() == category) {
+//            selectedBooks.add(book);
+//        }
+//    }
+//
+//    return selectedBooks;
+//}
 }
+
     
-    
-}
+
