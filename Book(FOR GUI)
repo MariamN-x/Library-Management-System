@@ -168,7 +168,7 @@ public void AddBook(String isbn, String title, String authorName, int quantity, 
         Book.booksList.add(book);
     }
 
-    public boolean editBook(String isbn, String title, String author, int quantity, double price, Category category) {
+public boolean editBook(String isbn, String title, String author, int quantity, double price, Category category) {
         Book book=Book.findBookByISBN(booksList,isbn);
             if (book!=null) {
                 book.setTitle(title);
@@ -248,24 +248,16 @@ public void AddBook(String isbn, String title, String authorName, int quantity, 
         }
         return categories;
     }
-    
-    //    public List<String> Listbyimages()
-//    {
-//        List<String> images = new ArrayList<>();
-//        for(Book book:booksList){
-//            images.add(book.imagePath);
-//        }
-//        return images;
-//    }
-     public List<String> ListAll()
-    {
-        List<String> all = new ArrayList<>();
-        for(Book book:booksList){
-            all.add("ISBN: "+book.getISBN()+"\tTitle:"+book.getTitle()+"\tAuthor: "+book.getAuthorName()+"\tCategory: "+book.getCategory()+
-                    "\tPrice: "+book.getPrice()+"\tQuantity: "+book.getQuantity());
-        }
-        return all;
+
+public List<String> ListAll()
+{
+    List<String> all = new ArrayList<>();
+    for(Book book:booksList){
+        all.add("ISBN: "+book.getISBN()+"\tTitle:"+book.getTitle()+"\tAuthor: "+book.getAuthorName()+"\tCategory: "+book.getCategory()+
+                "\tPrice: "+book.getPrice()+"\tQuantity: "+book.getQuantity());
     }
+    return all;
+}
 
 public static ArrayList<Book> selectCategory(Category category) {
     ArrayList<Book> selectedBooks = new ArrayList<>();
@@ -277,12 +269,10 @@ public static ArrayList<Book> selectCategory(Category category) {
     return selectedBooks;
 }
 
-   
-
-      @Override
-      public String toString()
-      {
-          return "Book title: "+getTitle()+"\t Author: "+getAuthorName()+"\t Price: "+getPrice();
-      }
+@Override
+public String toString()
+{
+  return "Book title: "+getTitle()+"\t Author: "+getAuthorName()+"\t Price: "+getPrice();
+}
 
 }
