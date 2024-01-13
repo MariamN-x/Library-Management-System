@@ -21,7 +21,6 @@ public class Order implements Serializable {
         this.totalAmountInOrder = booklist.size();
         ordersList.add(this); 
     }
-
     private int getNextOrderNum() {
         if (ordersList.isEmpty()) {
             return 1; // If the list is empty, start with order number 1
