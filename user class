@@ -6,16 +6,14 @@ import javafx.stage.Stage;
 
 public class User implements Serializable{
     private static final long serialVersionUID = -1389733824459161677L;
-
-    public enum UserType {
-        ADMIN, BORROWER, LIBRARIAN
-    }
-
     private String UserName;
     private String Password;
     private UserType userType;
     public static List<User> users;
-    
+    public enum UserType {
+        ADMIN, BORROWER, LIBRARIAN
+    }
+
     public User()
     {  
     }
