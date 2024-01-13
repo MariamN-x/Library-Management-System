@@ -67,7 +67,7 @@ public void placeOrder(List<Book> books) {
         this.ordersList.add(newOrder);
         // add books to the library & update quantity (if already exists)
         for (Book book : books) {
-            Book existingBook = Book.findBookByISBN(book.getISBN());
+            Book existingBook = Book.findBookByISBN(Book.booksList,book.getISBN());
             if (existingBook != null) {
                 int currentQuantity = existingBook.getQuantity();
                 int updatedQuantity = currentQuantity + book.getQuantity();
