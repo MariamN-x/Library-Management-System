@@ -7,16 +7,9 @@ import java.util.List;
 
 public class Borrower extends User implements Serializable {
     private static final long serialVersionUID = 7658793135987417738L;
-    private List<Book> borrowedBooksperBorrower;
-    private List<Borrowing>borrowingsPerBorrower=new ArrayList<>();
+    protected  List<Book> borrowedBooksperBorrower;
+    protected  List<Borrowing>borrowingsPerBorrower; 
     
-    public List<Book> getBorrowedBooksperBorrower() {
-        return borrowedBooksperBorrower;
-    }
-
-    public void setBorrowedBooksperBorrower(List<Book> borrowedBooks) {
-        this.borrowedBooksperBorrower = borrowedBooks;
-    }
     public Borrower(){}
     public Borrower(String username,String pass){
         super.setUserName(username);
@@ -44,14 +37,66 @@ public class Borrower extends User implements Serializable {
         super.setPassword(password);
     }
 
-    public List<Borrowing> getBorrowingsPerBorrower() {
-        return borrowingsPerBorrower;
+    public void setBorrowedBooksperBorrower(List<Book> borrowedBooksperBorrower) {
+        this.borrowedBooksperBorrower = borrowedBooksperBorrower;
     }
 
     public void setBorrowingsPerBorrower(List<Borrowing> borrowingsPerBorrower) {
         this.borrowingsPerBorrower = borrowingsPerBorrower;
     }
-    
+
+    public List<Book> getBorrowedBooksperBorrower() {
+        return borrowedBooksperBorrower;
+    }
+    public List<Borrowing> getBorrowingsPerBorrower() {
+        return borrowingsPerBorrower;
+    }
+//mariam's methods
+// public Borrower findBorrowerByName(String name) {
+//        for (Borrower borrower : borrowers) {
+//            if (borrower.getName().equals(name)) {
+//                return borrower;
+//            }
+//        }
+//        return null;
+//    }
+//public void returnBook(String borrowerName, String bookTitle) {
+//        Borrower borrower = findBorrowerByName(borrowerName);
+//        Book book = findBookByTitle(bookTitle);
+//
+//        if (borrower != null && book != null && !book.isAvailability()) {
+//            borrower.returnBook(book);
+//            System.out.println("BOOK RETURNED SUCCESSFULLY , THANKS ");
+//        } else {
+//            System.out.println("NOT VALID BOOK TO BE RETURNED ");
+//        }
+//    }
+//public void checkOutBook(String borrowerName, String bookTitle) {
+//        Borrower borrower = findBorrowerByName(borrowerName);
+//        Book book = findBookByTitle(bookTitle);
+//
+//        if (borrower != null && book != null && book.isAvailability()) {
+//            borrower.borrowBook(book);
+//            System.out.println(" BOOK AVAILABLE, HAVE A NICE READDING ");
+//        } else {
+//            System.out.println(" Book is not available.");
+//        }
+//    }
+//    
+//    public void printAllBooks() {
+//        for (Book book : Book.booksList) {
+//            System.out.println(book.getTitle() + " | " + book.getAuthor() + " | " + book.getPrice() + " | " + (book.isAvailability() ? "Available" : "Checked Out"));
+//        }
+//    }
+//    public void printAvailableBooks() {
+//        for (Book book : Book.booksList) {
+//            if (book.isAvailability()) {
+//                System.out.println(book.getTitle() + " | " + book.getAuthor() + " | " + book.getPrice());
+//            }
+//        }
+//    }
+//   
+   
     public List<String> viewBorrowingDetails() {
         List<String>str=new ArrayList<>();
         for (Borrowing borrowing : Borrowing.borrowingsList) {
@@ -80,22 +125,7 @@ public class Borrower extends User implements Serializable {
         }
         return totalPayment;
     }
-//
-//    public int getLostBookCount() {
-//        int lostBookCount = 0;
-//        for (Map.Entry<Book, Integer> entry : lostBooks.entrySet()) {
-//            lostBookCount += entry.getValue();
-//        }
-//        return lostBookCount;
-//    }
-//
-//    public int getBorrowedBookCount() {
-//        int borrowedBookCount = 0;
-//        for (Borrowing borrowing : Borrowing.borrowingsList) {
-//             borrowedBookCount += borrowing.getbookList().size();
-//        }
-//        return borrowedBookCount;
-//    }
+
 @Override
       public String toString()
       {
