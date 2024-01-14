@@ -23,6 +23,7 @@ class Borrowing implements Serializable {
     
     public static List<Borrowing> borrowingsList = new ArrayList<>();
     public static List<Book>borrowedBooks=new ArrayList<>(); // each user has his own borrowedBooks
+    private List<Book> borrowedBooksPerBorrowing=new ArrayList<>();
     private static HashMap<String, Integer> borrowCount = new HashMap<>();// isbn w count
     private static HashMap<String, Double> bookRevenueMap = new HashMap<>();// isbn w price
     private static HashMap<User, Double> borrowerRevenueMap = new HashMap<>();// isbn w revenue
@@ -78,6 +79,14 @@ class Borrowing implements Serializable {
 
     public void setRating(double rating) {
         this.rating = rating;
+    }
+
+    public List<Book> getBorrowedBooksPerBorrowing() {
+        return borrowedBooksPerBorrowing;
+    }
+
+    public void setBorrowedBooksPerBorrowing(List<Book> borrowedBooksPerBorrowing) {
+        this.borrowedBooksPerBorrowing = borrowedBooksPerBorrowing;
     }
     
     public static void setBorrowCount() {
@@ -184,19 +193,20 @@ public static void setLibrarianRevenueMap() {
 //    }
 //    Borrowing.borrowingsList.add(newBorrowing);
 //} 
- public void createBorrowing(Date startDate, User user, List<Book> borrowedBooks, double totalPrice) {
+ public boolean createBorrowing(Date startDate, User user, List<Book> borrowedBooks, double totalPrice) { //mot static to access booksPerBorrowing
     Borrowing newBorrowing = new Borrowing(user);
     newBorrowing.startDate = startDate;
     newBorrowing.endDate = newBorrowing.getEndDate(startDate);
-
+    List<Book>booksPerBorrowing=new ArrayList<>();
     for (Book book : borrowedBooks) {
         if (book.getQuantity() > 0) {
             book.setQuantity(book.getQuantity() - 1);
-            totalPrice = this.totalBorrowingPrice(Borrowing.borrowedBooks);
+            totalPrice =totalBorrowingPrice(Borrowing.borrowedBooks);
             newBorrowing.payment = totalPrice;
             Borrowing.borrowedBooks.add(book);
+            booksPerBorrowing.add(book);
         } else {
-            return; // Stop creating new borrowings if a book is not available(Quantity= 0)
+            return false; // Stop creating new borrowings if a book is not available(Quantity= 0)
         }
     }
 
@@ -212,20 +222,61 @@ public static void setLibrarianRevenueMap() {
     borrowingsList.add(newBorrowing);
     setBorrowCount(); // Update the borrow count for all borrowed books
     setBookRevenueMap();
-    
+    setBorrowedBooksPerBorrowing(booksPerBorrowing);
+    return true;
    
     }
+public static boolean cancelBorrowing(Borrowing borrowing) {
+    User user = borrowing.getUser();
+    List<Book> borrowedbooks = borrowing.getBorrowedBooksPerBorrowing(); 
 
-//public void cancelBorrowingByAttributes(Borrower borrower, ArrayList<Book> borrowedBooks) {    
-//    for (int i = 0; i < borrowingsList.size(); i++) {
-//        Borrowing borrowing = borrowingsList.get(i);
-//        if (borrowing.borrower.getUserName().equals(borrower.getUserName())) {
-//            borrowingsList.remove(i);
-//            System.out.println("Borrowing record canceled.");
-//            break;
-//        }
-//    }        
-//}
+    // Remove borrowed books from the user
+    if (user instanceof Borrower) {
+        ((Borrower) user).getBorrowedBooksperBorrower().removeAll(borrowedbooks);
+    } else if (user instanceof Librarian) {
+        ((Librarian) user).getBorrowedBooksperLibrarian().removeAll(borrowedbooks);
+    }
+
+    // Update book quantities
+    for (Book book : borrowedbooks) {
+        book.setQuantity(book.getQuantity() + 1);
+    }
+
+    // Remove the borrowing from the borrowingsList
+    borrowingsList.remove(borrowing);
+
+    // Update revenue maps and counts
+    if (user instanceof Borrower) {
+        setBorrowerRevenueMap();
+    } else if (user instanceof Librarian) {
+        setLibrarianRevenueMap();
+    }
+    setBookRevenueMap();
+    setBorrowCount();
+
+    return true;
+}
+
+ 
+public static Borrowing findBorrowing(String librarianName, String booksString) {
+    for (Borrowing borrowing : Borrowing.borrowingsList) {
+        if (borrowing.getUser().getUserName().equals(librarianName)
+                && borrowing.getBorrowedBooksAsString().equals(booksString)) {
+            return borrowing;
+        }
+    }
+    return null; 
+}
+public String getBorrowedBooksAsString() {
+        StringBuilder result = new StringBuilder();
+        for (Book book : borrowedBooks) {
+            result.append(book.getTitle()).append(",");
+        }
+        if (result.length() > 0) {
+            result.deleteCharAt(result.length() - 1);
+        }
+        return result.toString();
+    }
 
 public static List<String> getAllBorrowingDetails() {
     List<String> detailsList = new ArrayList<>();
@@ -255,11 +306,11 @@ public static List<String> getAllBorrowingDetails() {
     return detailsList;
 }
 
-public double totalBorrowingPrice(List<Book>borrowed)
-{
-    double price=0.0;
-    for(Book bor:borrowed)
-       price+=bor.getPrice();
+public double totalBorrowingPrice(List<Book> borrowed) {
+    double price = 0.0;
+    for (Book bor : borrowed) {
+        price += bor.getPrice();
+    }
     return price;
 }
 public static double totalBorrowingRevInPeriod(String startDateStr, String endDateStr) {
@@ -518,15 +569,13 @@ public static List<String> borrowingsPerLibrarianDetails() {
         return result;
     }
 
-
-    public static List<String> borrowingsPerBorrowerDetails() {
+public static List<String> borrowingsPerBorrowerDetails() {
         List<String> result = new ArrayList<>();
 
         for (User user : User.users) {
             if (user instanceof Borrower) {
                 List<Borrowing> borrowerBorrowings = filterBorrowingsByUserType(user, borrowingsList);
                 int borrowingsCount = borrowerBorrowings.size();
-                System.out.println(borrowingsCount);
                 if (borrowingsCount > 0) {
                     result.add("Borrower: " + user.getUserName() + ", Borrowings Count: " + borrowingsCount);
                     for (Borrowing borrowing : borrowerBorrowings) {
@@ -548,6 +597,7 @@ private static List<Borrowing> filterBorrowingsByUserType(User user, List<Borrow
     }
     return filteredBorrowings;
 }
+
 
 
 @Override
