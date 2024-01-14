@@ -9,7 +9,6 @@
  */
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javafx.geometry.Insets;
@@ -24,31 +23,19 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.layout.HBox;
-import javafx.stage.StageStyle;
 import javafx.util.Pair;
 public class Dialogs {
-
-    
     // user 
     //add
     protected void showAddUserDialog(User.UserType userType) {
@@ -76,9 +63,8 @@ public class Dialogs {
         if (dialogButton == addButton) {
             String username = usernameField.getText();
             String password = passwordField.getText();
-            User user = new User(username, password, userType);
-            User.users.add(user);  // Directly add the user to the list
-            showAlert("User added: " + user.getUserName() + " (" + user.getUserType() + ")",Alert.AlertType.INFORMATION);
+            new Admin().addUser(username, password, userType);
+            showAlert("User added successfully ",Alert.AlertType.INFORMATION);
         }
         return null;
     });
@@ -117,7 +103,7 @@ protected void showEditUserDialog() {
             String[] userData = newUserData.split(",");
             String newUsername = userData[0];
             String newPassword = userData[1];
-            new FirstPage().editUser(oldUsername, newUsername, newPassword);
+            new Admin().editUser(oldUsername, newUsername, newPassword);
         });
     });
 }
@@ -150,7 +136,7 @@ protected void showRemoveUserDialog() {
 
     Optional<String> result = dialog.showAndWait();
     result.ifPresent(username -> {
-         new FirstPage().removeUser(username);
+         new Admin().removeUser(username);
     });
 }
     
@@ -158,7 +144,7 @@ protected void showRemoveUserDialog() {
 //list
 protected void showListDialog(List<String> list) {
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("User List");
+        alert.setTitle("List Info");
         alert.setHeaderText(null);
 
         StringBuilder contentText = new StringBuilder();
@@ -225,7 +211,7 @@ protected void showBookDialog(boolean isAddOperation) {
 
     // If editing, pre-fill fields with existing book information
     if (!isAddOperation) {
-        Book selectedBook = Book.findBookByISBN(isbnField.getText());
+        Book selectedBook = Book.findBookByISBN(Book.booksList,isbnField.getText());
         if (selectedBook != null) {
             isbnField.setText(selectedBook.getISBN());
             titleField.setText(selectedBook.getTitle());
@@ -258,7 +244,7 @@ protected void showBookDialog(boolean isAddOperation) {
                 } else {
                     Book editedBook = new Book();
                     editedBook.setISBN(isbn); // Set the ISBN for searching
-                    Book existingBook = Book.findBookByISBN(editedBook.getISBN());
+                    Book existingBook = Book.findBookByISBN(Book.booksList,editedBook.getISBN());
 
                     if (existingBook != null) {
                         // Update only the non-empty fields
@@ -430,7 +416,7 @@ protected void showCategoryBookDialog() {
     dialog.setResultConverter(dialogButton -> {
         if (dialogButton == searchButton) {
             String isbn = isbnField.getText();
-            Book book=Book.findBookByISBN(isbn);//from class book
+            Book book=Book.findBookByISBN(Book.booksList,isbn);//from class book
             if(book!=null) 
               showAlert("Book with ISBN " + isbn + " belongs to category "+book.getCategory(), Alert.AlertType.INFORMATION);
             else
@@ -469,16 +455,19 @@ public void showOrderDialog(List<Supplier> suppliers) {
     // Create the books list and quantity spinners
     Label booksLabel = new Label("Books:");
     ListView<Book> booksListView = new ListView<>();
+    booksListView.setPrefSize(500, 300);
     booksListView.setItems(FXCollections.observableArrayList(booksList));
     gridPane.add(booksLabel, 0, 2);
     gridPane.add(booksListView, 1, 2);
     List<Spinner<Integer>> quantitySpinners = new ArrayList<>();
+    VBox root=new VBox();
     for (int i = 0; i < booksList.size(); i++) {
-        Book book = booksList.get(i);
-        Spinner<Integer> spinner = createQuantitySpinner(book);
-        quantitySpinners.add(spinner);
-        gridPane.add(spinner, 2, 2 + i);
-    }
+    Book book = booksList.get(i);
+    Spinner<Integer> spinner = createQuantitySpinner(book);
+    quantitySpinners.add(spinner);
+    root.getChildren().add(spinner);  
+}
+    gridPane.add(root, 2, 2);
 
     Button placeOrderButton = new Button("Place Order");
     placeOrderButton.setOnAction(event -> {
@@ -496,7 +485,6 @@ public void showOrderDialog(List<Supplier> suppliers) {
             double revenue = existingSupplier.getRevenue();
             existingSupplier.setRevenue(revenue + orderTotal);
 
-            // Place the order
             placeOrder(existingSupplier, booksList, quantitySpinners);
         } else {
             showAlert("Supplier NOT found in Suppliers list", Alert.AlertType.ERROR);
@@ -512,6 +500,8 @@ public void showOrderDialog(List<Supplier> suppliers) {
     gridPane.add(placeOrderButton, 1, 3 + booksList.size());
     gridPane.add(cancelButton, 2, 3 + booksList.size());
     orderDialog.getDialogPane().setContent(gridPane);
+    orderDialog.getDialogPane().setMinHeight(700);
+    orderDialog.getDialogPane().setMinWidth(1000);
     orderDialog.showAndWait();
 }
 
@@ -522,23 +512,120 @@ private Spinner<Integer> createQuantitySpinner(Book book) {
                 new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, book.getQuantity());
         spinner.setValueFactory(valueFactory);
         return spinner;
-    }
+}
 
-    private void placeOrder(Supplier sup,List<Book>booksList,List<Spinner<Integer>> quantitySpinners) {
+private void placeOrder(Supplier sup,List<Book>booksList,List<Spinner<Integer>> quantitySpinners) {
         List<Book> selectedBooks = new ArrayList<>();
         for (int i = 0; i < booksList.size(); i++) {
-            Book book = booksList.get(i);
-            int quantity = quantitySpinners.get(i).getValue();
-            book.setQuantity(quantity);
-            selectedBooks.add(book);
-        }
+        Book book = booksList.get(i);
+        int quantity = quantitySpinners.get(i).getValue();
+        book.setQuantity(quantity);
+        selectedBooks.add(book);
+    }
 
         // Invoke the placeOrder method to update the quantities 
         sup.placeOrder(selectedBooks);
         showAlert("order placed successfully",Alert.AlertType.INFORMATION);
     }
+    
+    //No of borrows
+protected void showNoBorrowsDialog(String startDateField, String endDateField) {
+    Dialog<String> secondDialog = new Dialog<>();
+    secondDialog.setTitle("Result Dialog");
+    secondDialog.setHeaderText("This is the result of the search:");
+
+    String startDate = startDateField;
+    String endDate = endDateField;
+    int numberOfBorrows = Borrowing.NoOfBorrowsInPeriod(startDate, endDate);
+
+    Label resultLabel = new Label("Number of borrows in the specified period: " + numberOfBorrows);
+    secondDialog.getDialogPane().setContent(new VBox(10, resultLabel));
+
+    ButtonType closeButton = new ButtonType("Close", ButtonBar.ButtonData.OK_DONE);
+    secondDialog.getDialogPane().getButtonTypes().add(closeButton);
+
+    secondDialog.setResultConverter(dialogButton -> {
+        if (dialogButton == closeButton) {
+            return null;
+        }
+        return null;
+    });
+
+    secondDialog.showAndWait();
+}
+
+protected void showTotal_avgDialog(String startDateField, String endDateField, boolean isTotal) {
+    Dialog<String> dialog = new Dialog<>();
+    ButtonType closeButton = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
+    dialog.getDialogPane().getButtonTypes().addAll(closeButton);
+
+    VBox content = new VBox();
+    content.setSpacing(10); 
+        StringBuilder s=new StringBuilder();
+        if (isTotal) {// for total
+            dialog.setTitle("Total Borrowing Revenue");
+            double total= Borrowing.totalBorrowingRevInPeriod(startDateField, endDateField);
+            s.append("Total Borrowings Revenue in this peroid: ");
+            s.append(total);
+            
+        } else {// fro average
+            dialog.setTitle("Average Borrowing Revenue");
+            double average=Borrowing.averageBorrowingRevenueInPeriod(startDateField, endDateField);
+            s.append("Average Borrowings Revenue in this peroid: ");
+            s.append(average);
+        }
+    s.append("$");
+    Label countLabel = new Label(s.toString());
+    content.getChildren().add(countLabel);
+    dialog.getDialogPane().setContent(content);
+    dialog.showAndWait();
+ 
+}
+
+public void maxUserBorrowingsDialog(User user)
+{
+    Dialog dialog= new Dialog<>();
+    ButtonType closeButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(closeButton);
+    if(user instanceof Librarian ){
+    dialog.setTitle("Max Librarian Borrowings ");
+    Librarian librarian=Borrowing.maxLibrarianBorrowings();
+    dialog.setContentText("The llibrarian with max borrowings is: "+librarian.getUserName());
+    }
+    else if(user instanceof Borrower)
+    {
+        dialog.setTitle("Max Borrower Borrowings: ");
+        Borrower borrower=Borrowing.maxBorrowerBorrowings();
+        dialog.setContentText("The borrower with max borrowings is: "+borrower.getUserName());
+    }
+    dialog.showAndWait();
+}
+
+public void maxUserRevenueDialog(User user)
+{
+    Dialog dialog= new Dialog<>();
+    ButtonType closeButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(closeButton);
+    if(user instanceof Librarian ){
+    dialog.setTitle("Max Librarian Revenue");
+    
+    Map<String, Double> librarianRevenueMap = Borrowing.getLibrarianRevenueMap();
+        dialog.setContentText("The librarian with max revenue is: \n"+librarianRevenueMap);
+    
+    }
+    else if(user instanceof Borrower)
+    {
+        dialog.setTitle("Max Borrower Revenue");
+        Map<String, Double> borrowerRevenueMap = Borrowing.getBorrowerRevenueMap();
+    dialog.setContentText("The borrower with max revenue is: \n"+borrowerRevenueMap);
+    }
+    dialog.getDialogPane().setMinHeight(600);
+    dialog.getDialogPane().setMinWidth(800);
+    dialog.showAndWait();
+}
+
     //Alert
-public Alert showAlert(String content, Alert.AlertType alertType) {
+public static Alert showAlert(String content, Alert.AlertType alertType) {
     Alert alert = new Alert(alertType);
     alert.setHeaderText(null);
     alert.setContentText(content);
