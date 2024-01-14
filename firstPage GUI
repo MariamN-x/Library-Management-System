@@ -1,14 +1,16 @@
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -18,11 +20,9 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 public class FirstPage extends Application implements Serializable{
     
@@ -31,9 +31,21 @@ public class FirstPage extends Application implements Serializable{
     protected PasswordField passwordField;
     protected PasswordField retypePasswordField;
     protected Button login,signup1,signup2;
-    protected ObservableList<String> observableList;
-    private User accountObj;
+    private Label logout;
+    protected ObservableList<String> observableList;//for listing
+    protected User accountObj;
     private final Dialogs dialog=new Dialogs(); //just for calling dialog methods
+    private final BorrowerScene borrwerMethods=new BorrowerScene();
+    // all buttons that need specific period of time dialog
+    public Button NoBorrows,mostBorroweredBook,mostrevenueBook,totalRevenue,avgRevenue,avgBorrowing,totalBorrowing; 
+    private final ObservableList<String> bookCategories = FXCollections.observableArrayList();
+    private final ObservableList<String> selectedBooks = FXCollections.observableArrayList();
+    private final ObservableList<String> borrowerPreferences = FXCollections.observableArrayList(
+            "New Releases",
+            "Best Sellers",
+            "Rate",
+            "Price"
+    );
   
 @Override
 public void start(Stage primaryStage) {
@@ -43,59 +55,327 @@ public void start(Stage primaryStage) {
     //primaryStage.setScene(AdminScene());
     accountObj = new User();
     //primaryStage.setResizable(false);
+    
+    //logout button
+    logout =new Label("logout->");
+    logout.setStyle("-fx-font-size: 18px; -fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-text-fill: white;");
+    logout.setPadding(new Insets(10,10,10,500));
+    logout.setOnMouseClicked(e->LoginScene(primaryStage));
     primaryStage.show();
 
 }    
-   
-protected boolean Login(String username, String password, Stage primaryStage) {
-    accountObj = accountObj.login(User.users, username, password); //call login method in user class
+protected Scene BorrowerScene() {
+    Button createBorrowing = new Button("Create Borrowing");
+    createBorrowing=style(createBorrowing);
+    createBorrowing.setAlignment(Pos.CENTER);
+    createBorrowing.setOnAction(e -> primaryStage.setScene(createScene3(BorrowerScene())));
+        
+    HBox acc=new HBox();
+    ImageView i=new ImageView(new Image("file:acc.png"));
+    i.setFitHeight(70);     i.setFitWidth(70);
+    Label name=new Label("\n"+accountObj.getUserName());
+    name.setStyle("-fx-font-size: 15px; -fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-text-fill: black;");
+    logout =new Label("logout->");
+    logout.setStyle("-fx-font-size: 18px;-fx-font-weight: bold; -fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-text-fill: black;");
+    logout.setPadding(new Insets(10,10,10,1250));
+    logout.setOnMouseClicked(e->LoginScene(primaryStage));
+    acc.setPadding(new Insets(10));
+    acc.getChildren().addAll(i,name,logout);
+    
+    TilePane booksPane = new TilePane();
+        booksPane.setHgap(10);
+        booksPane.setVgap(10);
+        booksPane.setPadding(new Insets(70));
+        List<Book> borrowedBooks = new ArrayList<>();
 
+for (Book book : Book.booksList) {
+    HBox bookContainer = borrwerMethods.createBookContainer(book);
+
+    // Assuming borrowButton is a public member of BorrwerMethods class
+    borrwerMethods.borrowButton.setOnAction(e -> {
+        borrowedBooks.add(book);
+
+        Borrowing newBorrowing = new Borrowing(accountObj);
+        newBorrowing.totalBorrowingPrice(borrowedBooks);
+        double total = newBorrowing.totalBorrowingPrice(borrowedBooks);
+
+        if (newBorrowing.createBorrowing(new Date(), accountObj, borrowedBooks, total)) {
+            Dialogs.showAlert("The total price of your borrowing: " + total, Alert.AlertType.INFORMATION);
+        } else {
+            Dialogs.showAlert("Failed to create borrowing", Alert.AlertType.ERROR);
+        }
+    });
+
+    booksPane.getChildren().add(bookContainer);
+}
+    VBox layout=new VBox(createBorrowing,booksPane);
+    layout.setAlignment(Pos.CENTER);
+        
+    StackPane st=new StackPane(new FlowPane(acc),layout);
+    Scene scene = new Scene(st, 800, 600);
+    return scene;
+}
+protected Scene LibrarianScene() {  
+    
+    Scene newScene=startLibrarianScene();
+    
+    return newScene;
+}
+public Scene startLibrarianScene(){
+        Group gp1 = new Group();
+        Button btn1 = createButton("1. Create Borrowing");
+        btn1.setOnAction(e -> primaryStage.setScene(createScene3(startLibrarianScene())));
+
+        Button btn2 = createButton("2. Cancel Borrowing");
+        btn2.setOnAction(e -> primaryStage.setScene(createScene2()));
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10);
+        gridPane.setVgap(5);
+        gridPane.add(btn1, 0, 0);
+        gridPane.add(btn2, 0, 1);
+
+        gridPane.setAlignment(Pos.CENTER);
+        gp1.getChildren().add(gridPane);
+        
+    ImageView imageView1 = new ImageView(new Image("file:im2.jpg"));
+    imageView1.fitWidthProperty().bind(primaryStage.widthProperty());
+    imageView1.fitHeightProperty().bind(primaryStage.heightProperty());
+    HBox acc=new HBox();
+    ImageView i=new ImageView(new Image("file:acc1.png"));
+    i.setFitHeight(70);     i.setFitWidth(70);
+    Label name=new Label("\n"+accountObj.getUserName());
+    name.setStyle("-fx-font-size: 18px;-fx-font-weight: bold; -fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-text-fill: white;");
+    logout =new Label("logout->");
+    logout.setStyle("-fx-font-size: 18px;-fx-font-weight: bold; -fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-text-fill: white;");
+    logout.setPadding(new Insets(10,10,10,1250));
+    logout.setOnMouseClicked(e->LoginScene(primaryStage));
+    acc.setPadding(new Insets(10));
+    acc.getChildren().addAll(i,name,logout);
+    FlowPane all=new FlowPane(acc);
+    StackPane root1=new StackPane(imageView1,all,gp1);
+    Scene mainScene = new Scene(root1, 1000, 700);
+        return mainScene;
+}
+    
+
+public  Button createButton(String text) {
+        Button button = new Button(text);
+        button.setMinWidth(150);
+        return button;
+    }
+
+public Scene createScene2() {
+        GridPane root = new GridPane();
+        root.setHgap(10);
+        root.setVgap(5);
+        root.setAlignment(Pos.CENTER);
+
+        Button backButton = createButton("Back");
+        backButton.setOnAction(e -> primaryStage.setScene(startLibrarianScene()));
+        TextField libName = new TextField();
+        TextField bookList = new TextField();
+        
+        root.add(new Label("Librarian Name"), 0, 0);
+        root.add(libName, 1, 0);
+        root.add(new Label("Book List separated by comma"), 0, 1);
+        root.add(bookList, 1, 1);
+        root.add(backButton, 0, 2);
+        Button cancelButton = createButton("Cancel Borrowing");
+        root.add(cancelButton, 1, 2);
+
+    cancelButton.setOnAction(e -> {
+        String librarianName = libName.getText();
+        String booksString = bookList.getText();
+        Borrowing borrowingToCancel = Borrowing.findBorrowing(librarianName, booksString);
+        if (borrowingToCancel != null) {
+            boolean cancellationSuccessful = Borrowing.cancelBorrowing(borrowingToCancel);
+            if (cancellationSuccessful) {
+                Dialogs.showAlert("Borrowing canceled successfully", Alert.AlertType.INFORMATION);
+            } else {
+                Dialogs.showAlert("Failed to cancel borrowing", Alert.AlertType.ERROR);
+            }
+        } else {
+            Dialogs.showAlert("Borrowing not found", Alert.AlertType.ERROR);
+        }
+    });
+        
+        return new Scene(root, 1000, 700);
+    }
+
+public Scene createScene3(Scene mainScene) {
+    GridPane root = new GridPane();
+    root.setHgap(10);
+    root.setVgap(5);
+    root.setAlignment(Pos.CENTER);
+
+    Button backButton = createButton("Back");
+    backButton.setOnAction(e -> primaryStage.setScene(mainScene));
+
+    Button borrowButton = createButton("Borrow");
+    borrowButton.setOnAction(e -> handleBorrowButton());
+
+    // Populate bookCategories with enum values dynamically
+    for (Book.Category category : Book.Category.values()) {
+        bookCategories.add(category.toString());
+    }
+
+    GridPane grid = new GridPane();
+    grid.setPadding(new Insets(10, 10, 10, 10));
+    grid.setVgap(8);
+    grid.setHgap(10);
+
+    // Select Category and Borrower's Preferences
+    Label categoryLabel = new Label("Select Category:");
+    ComboBox<String> categoryComboBox = new ComboBox<>(bookCategories);
+
+    Label preferencesLabel = new Label("Select Borrower's Preferences:");
+    ComboBox<String> preferencesComboBox = new ComboBox<>(borrowerPreferences);
+
+    // Specify Borrowing Term Details
+    Label termLabel = new Label("Specify Borrowing Term (days):");
+    TextField termTextField = new TextField();
+
+    // Book List
+    Label bookListLabel = new Label("Select Books:");
+    ComboBox<String> bookComboBox = new ComboBox<>();
+    ListView<String> bookListView = new ListView<>();
+
+    // Add the books for each category
+    categoryComboBox.setOnAction(event -> {
+        String selectedCategory = categoryComboBox.getValue();
+        if (selectedCategory != null) {
+            Book.Category category = Book.Category.valueOf(selectedCategory);
+            List<Book> booksInCategory = Book.selectCategory(category);
+
+            List<String> booksInCategoryStr = new ArrayList<>();
+            for (Book book : booksInCategory) {
+                booksInCategoryStr.add(book.toString());
+            }
+
+            bookComboBox.setItems(FXCollections.observableArrayList(booksInCategoryStr));
+            bookListView.setItems(selectedBooks);
+        }
+    });
+
+    // Add the selected book to the list of selected books
+    bookComboBox.setOnAction(event -> {
+        String selectedBook = bookComboBox.getValue();
+        if (selectedBook != null) {
+            selectedBooks.add(selectedBook);
+        }
+    });
+
+    // Remove the selected book from the list of selected books
+    Button removeButton = createButton("Remove Selected Book");
+    removeButton.setOnAction(e -> {
+        String selectedBook = bookListView.getSelectionModel().getSelectedItem();
+        if (selectedBook != null) {
+            selectedBooks.remove(selectedBook);
+        }
+    });
+
+    // Add the components to the grid
+    grid.add(categoryLabel, 0, 0);
+    grid.add(categoryComboBox, 1, 0);
+    grid.add(preferencesLabel, 0, 1);
+    grid.add(preferencesComboBox, 1, 1);
+    grid.add(termLabel, 0, 2);
+    grid.add(termTextField, 1, 2);
+    grid.add(bookListLabel, 0, 4);
+    grid.add(bookComboBox, 1, 4);
+    grid.add(bookListView, 1, 5);
+    grid.add(removeButton, 0, 6);
+    grid.add(borrowButton, 1, 6); 
+    root.add(grid, 0, 0);
+    root.add(backButton, 0, 1);
+
+    return new Scene(root, 1000, 700);
+}
+
+private void handleBorrowButton() {
+    Borrowing currentBorrowing = new Borrowing();
+    if (selectedBooks.isEmpty()) {
+        Dialogs.showAlert("Please select at least one book to borrow!", Alert.AlertType.WARNING);
+        return;
+    }
+
+    List<Book> books = mapTitlesToBooks(selectedBooks);
+    double totalPrice = currentBorrowing.totalBorrowingPrice(books);
+
+    if (currentBorrowing.createBorrowing(new Date(), accountObj, books, totalPrice)) {
+        Dialogs.showAlert("Borrowing created successfully\nThe total Price is: " + totalPrice, Alert.AlertType.INFORMATION);
+    } else {
+        Dialogs.showAlert("Can't create Borrowing", Alert.AlertType.ERROR);
+    }
+
+    selectedBooks.clear();
+}
+
+private List<Book> mapTitlesToBooks(List<String> selectedBooksTitles) {
+    List<Book> selectedbooks = new ArrayList<>();
+
+    for (String title : selectedBooksTitles) {
+        String cleanedTitle = title.replace("Book title:", "").trim().toLowerCase();
+
+        Optional<Book> optionalBook = Book.booksList.stream()
+                .filter(book -> cleanAndNormalize(book.getTitle()).equals(cleanedTitle))
+                .findFirst();
+
+        if (optionalBook.isPresent()) {
+            Book book = optionalBook.get();
+            System.out.println("Found book: " + book.getTitle() + ", Price: " + book.getPrice());
+            selectedbooks.add(book);
+        } else {
+            System.out.println("Book not found for title: " + cleanedTitle);
+        }
+    }
+
+    return selectedbooks;
+}
+
+private String cleanAndNormalize(String input) {
+    return input.trim().toLowerCase();
+}
+
+
+public boolean Login(String username, String password, Stage primaryStage) {
+    accountObj = accountObj.login(User.users, username, password); // login method in the User class
     if (accountObj != null) {
         System.out.println("Login successful!");
 
-        User.UserType userType = ((User) accountObj).getUserType();
+        if (accountObj instanceof User) {
+            User.UserType userType = ((User) accountObj).getUserType();
 
-        switch (userType) {
-            case ADMIN:
-                primaryStage.setScene(AdminScene());
-                break;
-            case LIBRARIAN:
-                primaryStage.setScene(LibrarianScene());
-                break;
-            case BORROWER:
-                primaryStage.setScene(BorrowerScene());
-                break;
+            if (userType != null) {
+                switch (userType) {
+                    case ADMIN:
+                        primaryStage.setScene(AdminScene());
+                        accountObj=new Admin(username,password);
+                        break;
+                    case LIBRARIAN:
+                        primaryStage.setScene(LibrarianScene());
+                        accountObj=new Librarian(username,password);
+                        break;
+                    case BORROWER:
+                        primaryStage.setScene(BorrowerScene());
+                        accountObj=new Borrower(username,password);
+                        break;
+                }
+            } else {
+               accountObj.setUserType(User.UserType.BORROWER);
+               accountObj=new Borrower(username,password);
+               primaryStage.setScene(BorrowerScene());
+            }
+
+            return true;
         }
-
-        return true;
     }
 
     return false;
 }
 
-protected boolean signup(String username, String password, Stage primaryStage) {
-    if (isUsernameExists(username)) {
-        dialog.showAlert("Signup Failed!\nUsername ALREADY taken", Alert.AlertType.ERROR);
-        return false;          
-    } else {
-            accountObj = new Borrower(username, password);
-            accountObj.signUp(User.users, accountObj); // called from user class
-            primaryStage.setScene(BorrowerScene());
-        }
-    //reset fields to be used later
-        usernameField.clear();
-        passwordField.clear();
-        return true;
-}
 
-protected boolean isUsernameExists(String username) {
-    for (User user : User.users) {
-        if (user.getUserName().equals(username)) {
-            return true; 
-        }
-    }
-    return false; 
-}
 //scenes
 protected void LoginScene(Stage primaryStage) {
         Image image = new Image("file:ll.png");
@@ -144,7 +424,7 @@ protected void LoginScene(Stage primaryStage) {
            String username = usernameField.getText();
            String password = passwordField.getText();
            if (!Login(username, password, primaryStage))
-        dialog.showAlert("Invalid username or password!", Alert.AlertType.ERROR);
+        Dialogs.showAlert("Invalid username or password!", Alert.AlertType.ERROR);
         });
 
         signup1.setOnAction(e -> {
@@ -188,7 +468,8 @@ public Scene signUpScene() {
     root3.setHgap(30);
     root3.setVgap(5);
     root3.setPadding(new Insets(0, 50, 0, 350));
-
+    if(!passwordField.getText().equals(retypePasswordField.getText()))
+     Dialogs.showAlert("check your password again", Alert.AlertType.WARNING);
     FlowPane root4 = new FlowPane( signup2);
     root4.setAlignment(Pos.CENTER);
     root4.setHgap(20);
@@ -203,7 +484,8 @@ public Scene signUpScene() {
     signup2.setOnAction(e -> {
         String username = usernameField.getText();
         String password = passwordField.getText();
-        signup(username,password,primaryStage);
+        if(accountObj.signup(username,password))
+            primaryStage.setScene(BorrowerScene());
     
     });
 
@@ -252,7 +534,7 @@ private Scene AdminScene() {
 
     combo2.setOnAction(e -> {
     List<String> use = new ArrayList<>();
-    User user=new Admin();
+    Admin user=new Admin();
     String selectedItem2 = combo2.getSelectionModel().getSelectedItem();
     if (selectedItem2 != null) {
         switch (selectedItem2) {
@@ -273,7 +555,7 @@ private Scene AdminScene() {
     dialog.showListDialog(use);
 });
 //list books    
-    ObservableList<String> listBookOptions = FXCollections.observableArrayList( "List by title", "List by isbn", "List by author name ",
+ObservableList<String> listBookOptions = FXCollections.observableArrayList( "List by title", "List by isbn", "List by author name ",
     "List by category","List by Quantity","List by price","List ALL");
     ComboBox<String> combo3 = new ComboBox<>(listBookOptions);
     combo3.setPromptText("List Books");
@@ -322,53 +604,75 @@ private Scene AdminScene() {
     categ_bookButton=style(categ_bookButton);
     categ_bookButton.setOnAction(e -> dialog.showCategoryBookDialog());
    
-//No.of borrow over a specific period of time     
-    Button NoBorrow = new Button("No.of Borrow");
-    NoBorrow=style(NoBorrow);
-    //NoBorrow.setOnAction(e -> );
+//No.of borrows over a specific period of time     
+    NoBorrows = new Button("No.of Borrows");
+    NoBorrows=style(NoBorrows);
+    NoBorrows.setOnAction(e ->{ specificPeriodDialog(e);
+    });
     
 //Most borrowed book and category it belogs to over a specific period of time  
-    Button mostBorroweredBook = new Button("Most Borrowed Book");
+    mostBorroweredBook = new Button("Most Borrowed Book");
     mostBorroweredBook=style(mostBorroweredBook);
-    //mostBorroweredBook.setOnAction(e -> );
+    mostBorroweredBook.setOnAction(e -> {
+    specificPeriodDialog(e);
+    });
     
 //Most revenue book and category it belogs to over a specific period of time  
-    Button mostrevenueBook = new Button("Most Revenue Book");
+    mostrevenueBook = new Button("Most Revenue Book");
     mostrevenueBook=style(mostrevenueBook);
-    //mostrevenueBook.setOnAction(e -> );    
+    mostrevenueBook.setOnAction(e ->{
+         specificPeriodDialog(e);
+    });    
     
     //manage librarian
 //No. of Borrowings per each Librarian and their details.    
     Button librarialBorrowings = new Button("Borrowing/Librarian");
     librarialBorrowings=style(librarialBorrowings);
-    //librarialBorrowings.setOnAction(e -> ); 
+    librarialBorrowings.setOnAction(e -> dialog.showListDialog(Borrowing.borrowingsPerLibrarianDetails())); 
     
 //Librarian with max no.of borrowings  
     Button maxLibrarianBorrowing=new Button("Max Librarian Borrowings");
     maxLibrarianBorrowing=style(maxLibrarianBorrowing);
-    //maxLibrarianRevenue.setOnAction(e -> );   
+    maxLibrarianBorrowing.setOnAction(e ->dialog.maxUserBorrowingsDialog(new Librarian()) );   
     
 //Librarian with the maximum revenue. 
     Button maxLibrarianRevenue=new Button("Max Librarian Revenue");
     maxLibrarianRevenue=style(maxLibrarianRevenue);
-    //maxLibrarianRevenue.setOnAction(e -> );   
+    maxLibrarianRevenue.setOnAction(e ->dialog.maxUserRevenueDialog(new Librarian()) );   
     
     //manage Borrower
 //No. of Borrowings per each Borrower and their details.   
     Button borrowerBorrowings = new Button("Borrowing/borrower");
     borrowerBorrowings=style(borrowerBorrowings);
-    //borrowerBorrowings.setOnAction(e -> ); 
+    borrowerBorrowings.setOnAction(e -> dialog.showListDialog(Borrowing.borrowingsPerBorrowerDetails())); 
     
 //Borrower with max no.of borrowings  
     Button maxBorrowerBorrowing=new Button("Max Borrower Borrowings");
     maxBorrowerBorrowing=style(maxBorrowerBorrowing);
-    //maxBorrowerBorrowing.setOnAction(e -> );   
+    maxBorrowerBorrowing.setOnAction(e -> dialog.maxUserBorrowingsDialog(new Borrower()));   
     
 //Borrower with the maximum revenue. 
     Button maxBorrowerRevenue=new Button("Max Borrower Revenue");
     maxBorrowerRevenue=style(maxBorrowerRevenue);
-    //maxBorrowerRevenue.setOnAction(e -> );   
+    maxBorrowerRevenue.setOnAction(e -> dialog.maxUserRevenueDialog(new Borrower()));   
 
+// manage borrowings
+// all borrowings details
+    Button borrowingDetails=new Button("Borrowing Details");
+    borrowingDetails=style(borrowingDetails);
+    borrowingDetails.setOnAction(e -> dialog.showListDialog(Borrowing.getAllBorrowingDetails()));  
+//avg borrowings revenue over specific period of time
+    avgBorrowing=new Button("AVG Borrowing Revenue");
+    avgBorrowing=style(avgBorrowing);
+    avgBorrowing.setOnAction(e->{
+         specificPeriodDialog(e);
+    });   
+//total borrowing revenue over specific period of time
+    totalBorrowing=new Button("Total Borrowing Revenue");
+    totalBorrowing=style(totalBorrowing);
+    totalBorrowing.setOnAction(e->{
+         specificPeriodDialog(e);
+    });   
     
     
 // supplier
@@ -427,6 +731,8 @@ private Scene AdminScene() {
     Label booksReportsLabel=new Label("Books Reports");
     booksReportsLabel=styleLabel(booksReportsLabel);
     
+    Label borrowingReportsLabel=new Label("Manage Borrowings");
+    borrowingReportsLabel=styleLabel(borrowingReportsLabel);
     
     Label O_SLabel=new Label("Manage Orders & Suppliers");
     O_SLabel.setStyle("-fx-font-size: 18px; -fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-text-fill: white;");
@@ -442,32 +748,34 @@ private Scene AdminScene() {
     Label title=new Label("\t\t\t\t\tWelcome to the Library");
     title.setStyle("-fx-font-size: 40px; -fx-font-family: 'Georgia'; -fx-font-style: italic; -fx-text-fill: white;");
     title.setAlignment(Pos.CENTER);
-    acc.getChildren().addAll(i,name,title);
-
-    VBox users=new VBox();   
+    acc.setPadding(new Insets(10));
+    acc.getChildren().addAll(i,name,title,logout);
+   
+    VBox users=new VBox(10);   
     users.getChildren().addAll(usersLabel,combo1,editUserButton,removeUserButton,combo2);
-    users.setSpacing(10);
+
     
-    VBox books=new VBox();   
+    VBox books=new VBox(10);   
     books.getChildren().addAll(booksLabel,addBookButton,editBookButton,removeBookButton,combo3,Books_categButton);
-    books.setSpacing(10);
-    
-    VBox booksReports=new VBox();
-    booksReports.getChildren().addAll(booksReportsLabel,categ_bookButton,NoBorrow,mostBorroweredBook,mostrevenueBook);
-    booksReports.setSpacing(10);
-    
-    VBox manageLibrarian=new VBox();
+
+    VBox booksReports=new VBox(10);
+    booksReports.getChildren().addAll(booksReportsLabel,categ_bookButton,NoBorrows,mostBorroweredBook,mostrevenueBook);
+
+    VBox manageLibrarian=new VBox(10);
     manageLibrarian.getChildren().addAll(librarianLabel,librarialBorrowings,maxLibrarianBorrowing,maxLibrarianRevenue);
-    manageLibrarian.setSpacing(10);
+
     
-    VBox manageBorrower=new VBox();
+    VBox manageBorrower=new VBox(10);
     manageLibrarian.getChildren().addAll(borrowerLabel,borrowerBorrowings,maxBorrowerBorrowing,maxBorrowerRevenue);
-    manageLibrarian.setSpacing(10);
     
-    VBox orders_Supp=new VBox();   
+    VBox manageBorrowing=new VBox(10);
+    manageBorrowing.getChildren().addAll(borrowingReportsLabel,borrowingDetails,avgBorrowing,totalBorrowing);
+    
+    
+    VBox orders_Supp=new VBox(10);   
     orders_Supp.getChildren().addAll(O_SLabel,makeOrderBtn,maxSupplierOrderBtn,maxSupplierRevenueBtn,orderDetailsbtn);
-    orders_Supp.setSpacing(10);
-    HBox actions=new HBox(30,users,books,booksReports,manageLibrarian,manageBorrower,orders_Supp);
+    
+    HBox actions=new HBox(30,users,books,booksReports,manageLibrarian,manageBorrower,manageBorrowing,orders_Supp);
     actions.setPadding(new Insets(150));
     
     FlowPane all=new FlowPane(acc,actions);
@@ -484,24 +792,6 @@ private Scene AdminScene() {
 }
 
 
-protected boolean editUser(String oldUsername, String newUsername, String newPassword) { 
-    User userToEdit = new User();
-    userToEdit=userToEdit.editUser(User.users, oldUsername, newUsername, newPassword);// called from user class
-    if (userToEdit != null) {
-        if (!oldUsername.equals(newUsername) && isUsernameExists(newUsername)) {
-            dialog.showAlert("Edit Failed!\nNew username is already taken", Alert.AlertType.ERROR);
-            return false;
-        }
-        userToEdit.setUserName(newUsername);
-        userToEdit.setPassword(newPassword);
-        dialog.showAlert("User information updated successfully", Alert.AlertType.INFORMATION);
-        return true;
-    } else {
-        dialog.showAlert("User not found", Alert.AlertType.ERROR);
-        return false;
-    }
-}
-
 private User.UserType getUserTypeFromSelectedItem(String selectedItem) {
     switch (selectedItem) {
         case "Add Admin":
@@ -515,38 +805,50 @@ private User.UserType getUserTypeFromSelectedItem(String selectedItem) {
     }
 }
 
+public void specificPeriodDialog(ActionEvent e) {
+    Dialog<ButtonType> dia = new Dialog<>();
+    dia.setTitle("Get date");
+    dia.setHeaderText("Enter Start Date and End Date for searching:");
 
-protected boolean removeUser(String username) {
-    User userToRemove= new Admin();
-    userToRemove=userToRemove.removeUser(User.users, username);
-    if (userToRemove != null) {
-        User.users.remove(userToRemove);
-        dialog.showAlert("User removed successfully", Alert.AlertType.INFORMATION);
-        return true;
-    } else {
-        dialog.showAlert("User not found", Alert.AlertType.ERROR);
-        return false;
+    ButtonType searchButtonType = new ButtonType("Search", ButtonBar.ButtonData.OK_DONE);
+    dia.getDialogPane().getButtonTypes().addAll(searchButtonType, ButtonType.CANCEL);
+
+    TextField startDateField = new TextField();
+    startDateField.setPromptText("2023-12-30");
+    TextField endDateField = new TextField();
+
+    dia.getDialogPane().setContent(new VBox(10, new Label("Start Date:"), startDateField, new Label("End Date:"), endDateField));
+
+    Node searchButtonNode = dia.getDialogPane().lookupButton(searchButtonType);
+    Button searchButton = (Button) searchButtonNode;
+    searchButton.setDisable(true);
+
+    endDateField.textProperty().addListener((observable, oldValue, newValue) -> {
+        searchButton.setDisable(newValue.trim().isEmpty());
+    });
+
+    Optional<ButtonType> result = dia.showAndWait(); 
+    if (result.isPresent() && result.get() == searchButtonType) { 
+        String SDate=startDateField.getText();
+        String EDate=endDateField.getText();
+        if (e.getSource() == NoBorrows) 
+            dialog.showNoBorrowsDialog(SDate,EDate); 
+        if (e.getSource() == mostBorroweredBook)  
+            dialog.showListDialog(Borrowing.mostBorrowedBooksInPeriod(SDate, EDate)); 
+        if(e.getSource()==mostrevenueBook)
+            dialog.showListDialog(Borrowing.mostRevenueBooksInPeriod(SDate, EDate));  
+        if(e.getSource()==avgBorrowing)
+            dialog.showTotal_avgDialog(SDate,EDate,false);  
+        if(e.getSource()==totalBorrowing) 
+            dialog.showTotal_avgDialog(SDate,EDate,true);  
+
     }
 }
 
-protected Scene LibrarianScene() {
-        
-    VBox root=new VBox();   
-    root.setAlignment(Pos.CENTER);
-    Scene newScene=new Scene(root,700,600);
-    
-    return newScene;
-}
 
-protected Scene BorrowerScene() {
-    Label lbl=new Label("Welcome To The Library...\nBorrower");
-    lbl.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-font-family: 'Georgia';-fx-font-style: italic; -fx-text-fill: black;");
-    VBox root=new VBox(lbl);   
-    root.setAlignment(Pos.CENTER);
-    Scene newScene=new Scene(root,700,600);
-    
-    return newScene;
-}
+
+
+
 public Button style(Button btn)
 {
     btn.setStyle("-fx-font-size: 12px; -fx-background-color: black; -fx-text-fill: white; -fx-pref-width: 150px; -fx-pref-height: 30px;");
@@ -562,10 +864,14 @@ public static void main(String[] args) {
     Book.booksList = Files.readObjectsFromFile("book.bin");
     Order.ordersList=Files.readObjectsFromFile("orders.bin");
     Supplier.suppliersList=Files.readObjectsFromFile("suppliers.bin");
+    Borrowing.borrowingsList= Files.readObjectsFromFile("borrowings.bin");
+    Borrowing.borrowedBooks=Files.readObjectsFromFile("borrowedBooks.bin");    
     launch(args);
     Files.writeObjectsToFile(User.users, "users.bin");
     Files.writeObjectsToFile(Book.booksList, "book.bin");
     Files.writeObjectsToFile(Order.ordersList, "orders.bin");
     Files.writeObjectsToFile(Supplier.suppliersList,"suppliers.bin");
+    Files.writeObjectsToFile(Borrowing.borrowingsList,"borrowings.bin");
+    Files.writeObjectsToFile(Borrowing.borrowedBooks, "borrowedBooks.bin");
 }
 }
